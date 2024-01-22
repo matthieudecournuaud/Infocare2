@@ -1,0 +1,53 @@
+<div>
+  <div *ngIf="account && showSuccessAlert" class="alert alert-dismissible alert-success">
+    <button type="button" class="btn-close" (click)="showSuccessAlert = false" aria-label="Close"></button>
+    <span id="home-logged-message" jhiTranslate="home.logged.message" [translateValues]="{ username: account.login }">
+      Vous êtes connecté en tant que "{{ account.login }}".
+    </span>
+  </div>
+  <ng-container *ngIf="!account">
+    <div class="alert alert-warning">
+      <span jhiTranslate="global.messages.info.authenticated.prefix">Si vous voulez vous </span>
+      <a class="alert-link" (click)="login()" jhiTranslate="global.messages.info.authenticated.link">connecter</a>
+      <span jhiTranslate="global.messages.info.authenticated.suffix"
+        >, vous pouvez utiliser les comptes par défaut :
+        <br />
+        - Administrateur (nom d'utilisateur="admin" et mot de passe="admin") <br />
+        - Utilisateur (nom d'utilisateur="user" et mot de passe="user").
+      </span>
+    </div>
+    <div class="alert alert-warning">
+      <span jhiTranslate="global.messages.info.register.noaccount">Vous n'avez pas encore de compte ?</span>
+      <a class="alert-link" routerLink="/account/register" jhiTranslate="global.messages.info.register.link">Créer un compte</a>
+    </div>
+  </ng-container>
+</div>
+
+<section *ngIf="account" class="neumorphic-dashboard">
+  <div class="neumorphic-block">
+    <h1>Dashboard</h1>
+    <div class="neumorphic-content">
+      <!-- Boucle sur chaque ticket dans recentTickets -->
+      <div *ngFor="let ticket of recentTickets" class="card border-primary mb-3" style="max-width: 20rem">
+        <div class="card-header">{{ ticket.title }}</div>
+        <!-- Affiche le titre du ticket -->
+        <div class="card-body">
+          <div>
+            {{ ticket.description }}
+          </div>
+          <div></div>
+          <label class="ticket-label" for="progress-ticket"
+            >Status du ticket:
+            <span class="badge bg-primary">
+              {{ ticket.status?.statusCode }}
+            </span>
+          </label>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: 5%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <!-- Vous pouvez ajouter plus de détails sur le ticket ici si nécessaire -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

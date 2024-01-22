@@ -66,6 +66,18 @@ export class TicketService {
       .pipe(map(res => this.convertResponseFromServer(res)));
   }
 
+  queryRecent(): Observable<EntityArrayResponseType> {
+    return this.http
+      .get<ITicket[]>(`${this.resourceUrl}/recent`, { observe: 'response' })
+      .pipe(map(res => this.convertResponseArrayFromServerForRecent(res)));
+  }
+
+  protected convertResponseArrayFromServerForRecent(res: HttpResponse<ITicket[]>): HttpResponse<ITicket[]> {
+    return res.clone({
+      body: res.body ? res.body.map(ticket => this.convertDateFromServer(ticket as any)) : null,
+    });
+  }
+
   query(req?: any): Observable<EntityArrayResponseType> {
     const options = createRequestOption(req);
     return this.http

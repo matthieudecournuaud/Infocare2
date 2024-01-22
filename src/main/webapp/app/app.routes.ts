@@ -1,12 +1,12 @@
 import { Routes } from '@angular/router';
 
 import { Authority } from 'app/config/authority.constants';
-import { UserRouteAccessService } from 'app/core/auth/user-route-access.service';
 import { errorRoute } from './layouts/error/error.route';
 
-import HomeComponent from './home/home.component';
+import { HomeComponent } from './accueil/home/home.component';
 import NavbarComponent from './layouts/navbar/navbar.component';
 import LoginComponent from './login/login.component';
+import { olsenGuard } from './olsen.guard';
 
 const routes: Routes = [
   {
@@ -24,8 +24,23 @@ const routes: Routes = [
     data: {
       authorities: [Authority.ADMIN],
     },
-    canActivate: [UserRouteAccessService],
-    loadChildren: () => import('./admin/admin.routes'),
+    canActivate: [olsenGuard],
+    loadChildren: () => import('./users/admin/admin.routes'),
+  },
+  {
+    path: 'technician',
+    data: {
+      authorities: [Authority.USER],
+    },
+    canActivate: [olsenGuard],
+    loadChildren: () => import('./users/technicien/technicien.routes'),
+  },
+  {
+    path: 'client',
+    data: {
+      authorities: [Authority.CLIENT],
+    },
+    loadChildren: () => import('./users/client/client.routes'),
   },
   {
     path: 'account',

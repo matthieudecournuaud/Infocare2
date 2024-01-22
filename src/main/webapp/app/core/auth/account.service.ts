@@ -11,6 +11,12 @@ import { ApplicationConfigService } from '../config/application-config.service';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
+  logout() {
+    this.userIdentity = null;
+    this.authenticationState.next(null);
+    this.accountCache$ = null;
+    this.router.navigate(['/login']);
+  }
   private userIdentity: Account | null = null;
   private authenticationState = new ReplaySubject<Account | null>(1);
   private accountCache$?: Observable<Account> | null;
