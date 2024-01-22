@@ -1,0 +1,80 @@
+{
+  "annotations": {
+    "changelogDate": "20240122134638"
+  },
+  "applications": "*",
+  "entityTableName": "jhi_procedure",
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "description",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "category",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "procedureId",
+      "fieldType": "Long"
+    },
+    {
+      "fieldName": "stepByStepGuide",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "5000"
+    },
+    {
+      "fieldName": "estimatedTime",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "requiredTools",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "500"
+    },
+    {
+      "fieldName": "skillsRequired",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "500"
+    },
+    {
+      "fieldName": "safetyInstructions",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "500"
+    },
+    {
+      "fieldName": "lastReviewed",
+      "fieldType": "LocalDate"
+    },
+    {
+      "fieldName": "reviewedBy",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "50"
+    },
+    {
+      "fieldName": "attachments",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "200"
+    }
+  ],
+  "name": "Procedure",
+  "relationships": [
+    {
+      "otherEntityName": "intervention",
+      "otherEntityRelationshipName": "procedure",
+      "relationshipName": "intervention",
+      "relationshipSide": "right",
+      "relationshipType": "one-to-one"
+    }
+  ],
+  "searchEngine": "no"
+}

@@ -1,0 +1,29 @@
+{
+  "infocare2App": {
+    "status": {
+      "home": {
+        "title": "Statuses",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Status",
+        "createOrEditLabel": "Créer ou éditer un Status",
+        "notFound": "Aucun Status trouvé"
+      },
+      "created": "Un nouveau Status a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Status avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Status avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Status {{ id }} ?"
+      },
+      "detail": {
+        "title": "Status"
+      },
+      "id": "ID",
+      "name": "Name",
+      "statusCode": "Status Code",
+      "description": "Description",
+      "colorCode": "Color Code",
+      "nextPossibleStatus": "Next Possible Status",
+      "isFinal": "Is Final"
+    }
+  }
+}

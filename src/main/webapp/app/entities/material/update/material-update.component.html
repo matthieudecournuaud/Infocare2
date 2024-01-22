@@ -1,0 +1,232 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-material-heading" data-cy="MaterialCreateUpdateHeading" jhiTranslate="infocare2App.material.home.createOrEditLabel">
+        Créer ou éditer un Material
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        @if (editForm.controls.id.value !== null) {
+          <div class="mb-3">
+            <label class="form-label" jhiTranslate="global.field.id" for="field_id">ID</label>
+            <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+          </div>
+        }
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.name" for="field_name">Name</label>
+          <input type="text" class="form-control" name="name" id="field_name" data-cy="name" formControlName="name" />
+          @if (editForm.get('name')!.invalid && (editForm.get('name')!.dirty || editForm.get('name')!.touched)) {
+            <div>
+              @if (editForm.get('name')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">Ce champ est obligatoire.</small>
+              }
+              @if (editForm.get('name')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                  >Ce champ doit faire moins de 50 caractères.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.type" for="field_type">Type</label>
+          <input type="text" class="form-control" name="type" id="field_type" data-cy="type" formControlName="type" />
+          @if (editForm.get('type')!.invalid && (editForm.get('type')!.dirty || editForm.get('type')!.touched)) {
+            <div>
+              @if (editForm.get('type')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">Ce champ est obligatoire.</small>
+              }
+              @if (editForm.get('type')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                  >Ce champ doit faire moins de 50 caractères.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.purchaseDate" for="field_purchaseDate">Purchase Date</label>
+          <div class="input-group">
+            <input
+              id="field_purchaseDate"
+              data-cy="purchaseDate"
+              type="text"
+              class="form-control"
+              name="purchaseDate"
+              ngbDatepicker
+              #purchaseDateDp="ngbDatepicker"
+              formControlName="purchaseDate"
+            />
+            <button type="button" class="btn btn-secondary" (click)="purchaseDateDp.toggle()">
+              <fa-icon icon="calendar-alt"></fa-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.warrantyEndDate" for="field_warrantyEndDate"
+            >Warranty End Date</label
+          >
+          <div class="input-group">
+            <input
+              id="field_warrantyEndDate"
+              data-cy="warrantyEndDate"
+              type="text"
+              class="form-control"
+              name="warrantyEndDate"
+              ngbDatepicker
+              #warrantyEndDateDp="ngbDatepicker"
+              formControlName="warrantyEndDate"
+            />
+            <button type="button" class="btn btn-secondary" (click)="warrantyEndDateDp.toggle()">
+              <fa-icon icon="calendar-alt"></fa-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.manufacturer" for="field_manufacturer">Manufacturer</label>
+          <input
+            type="text"
+            class="form-control"
+            name="manufacturer"
+            id="field_manufacturer"
+            data-cy="manufacturer"
+            formControlName="manufacturer"
+          />
+          @if (editForm.get('manufacturer')!.invalid && (editForm.get('manufacturer')!.dirty || editForm.get('manufacturer')!.touched)) {
+            <div>
+              @if (editForm.get('manufacturer')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                  >Ce champ doit faire moins de 50 caractères.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.model" for="field_model">Model</label>
+          <input type="text" class="form-control" name="model" id="field_model" data-cy="model" formControlName="model" />
+          @if (editForm.get('model')!.invalid && (editForm.get('model')!.dirty || editForm.get('model')!.touched)) {
+            <div>
+              @if (editForm.get('model')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                  >Ce champ doit faire moins de 50 caractères.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.statusMaterial" for="field_statusMaterial">Status Material</label>
+          <input
+            type="text"
+            class="form-control"
+            name="statusMaterial"
+            id="field_statusMaterial"
+            data-cy="statusMaterial"
+            formControlName="statusMaterial"
+          />
+          @if (
+            editForm.get('statusMaterial')!.invalid && (editForm.get('statusMaterial')!.dirty || editForm.get('statusMaterial')!.touched)
+          ) {
+            <div>
+              @if (editForm.get('statusMaterial')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                  >Ce champ doit faire moins de 50 caractères.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.lastMaintenanceDate" for="field_lastMaintenanceDate"
+            >Last Maintenance Date</label
+          >
+          <div class="input-group">
+            <input
+              id="field_lastMaintenanceDate"
+              data-cy="lastMaintenanceDate"
+              type="text"
+              class="form-control"
+              name="lastMaintenanceDate"
+              ngbDatepicker
+              #lastMaintenanceDateDp="ngbDatepicker"
+              formControlName="lastMaintenanceDate"
+            />
+            <button type="button" class="btn btn-secondary" (click)="lastMaintenanceDateDp.toggle()">
+              <fa-icon icon="calendar-alt"></fa-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.note" for="field_note">Note</label>
+          <input type="text" class="form-control" name="note" id="field_note" data-cy="note" formControlName="note" />
+          @if (editForm.get('note')!.invalid && (editForm.get('note')!.dirty || editForm.get('note')!.touched)) {
+            <div>
+              @if (editForm.get('note')?.errors?.maxlength) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 500 }"
+                  >Ce champ doit faire moins de 500 caractères.</small
+                >
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.serialNumber" for="field_serialNumber">Serial Number</label>
+          <input
+            type="number"
+            class="form-control"
+            name="serialNumber"
+            id="field_serialNumber"
+            data-cy="serialNumber"
+            formControlName="serialNumber"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.company" for="field_company">Company</label>
+          <select
+            class="form-control"
+            id="field_company"
+            data-cy="company"
+            name="company"
+            formControlName="company"
+            [compareWith]="compareCompany"
+          >
+            <option [ngValue]="null"></option>
+            @for (companyOption of companiesCollection; track $index) {
+              <option [ngValue]="companyOption">{{ companyOption.id }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Annuler</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Sauvegarder</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

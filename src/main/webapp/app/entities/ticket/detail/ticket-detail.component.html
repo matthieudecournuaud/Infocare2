@@ -1,0 +1,98 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (ticket) {
+      <div>
+        <h2 data-cy="ticketDetailsHeading"><span jhiTranslate="infocare2App.ticket.detail.title">Ticket</span></h2>
+
+        <hr />
+
+        <jhi-alert-error></jhi-alert-error>
+
+        <jhi-alert></jhi-alert>
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ ticket.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.title">Title</span></dt>
+          <dd>
+            <span>{{ ticket.title }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.description">Description</span></dt>
+          <dd>
+            <span>{{ ticket.description }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.createdAt">Created At</span></dt>
+          <dd>
+            <span>{{ ticket.createdAt | formatMediumDate }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.resolutionDate">Resolution Date</span></dt>
+          <dd>
+            <span>{{ ticket.resolutionDate | formatMediumDate }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.closedAt">Closed At</span></dt>
+          <dd>
+            <span>{{ ticket.closedAt | formatMediumDate }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.limitDate">Limit Date</span></dt>
+          <dd>
+            <span>{{ ticket.limitDate | formatMediumDate }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.impact">Impact</span></dt>
+          <dd>
+            <span>{{ ticket.impact }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.resolution">Resolution</span></dt>
+          <dd>
+            <span>{{ ticket.resolution }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.attachments">Attachments</span></dt>
+          <dd>
+            <span>{{ ticket.attachments }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.material">Material</span></dt>
+          <dd>
+            @if (ticket.material) {
+              <div>
+                <a [routerLink]="['/material', ticket.material.id, 'view']">{{ ticket.material.id }}</a>
+              </div>
+            }
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.category">Category</span></dt>
+          <dd>
+            @if (ticket.category) {
+              <div>
+                <a [routerLink]="['/category', ticket.category.id, 'view']">{{ ticket.category.id }}</a>
+              </div>
+            }
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.status">Status</span></dt>
+          <dd>
+            @if (ticket.status) {
+              <div>
+                <a [routerLink]="['/status', ticket.status.id, 'view']">{{ ticket.status.id }}</a>
+              </div>
+            }
+          </dd>
+          <dt><span jhiTranslate="infocare2App.ticket.priority">Priority</span></dt>
+          <dd>
+            @if (ticket.priority) {
+              <div>
+                <a [routerLink]="['/priority', ticket.priority.id, 'view']">{{ ticket.priority.id }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
+        </button>
+
+        <button type="button" [routerLink]="['/ticket', ticket.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

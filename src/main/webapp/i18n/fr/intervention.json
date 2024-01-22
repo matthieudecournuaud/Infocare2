@@ -1,0 +1,31 @@
+{
+  "infocare2App": {
+    "intervention": {
+      "home": {
+        "title": "Interventions",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Intervention",
+        "createOrEditLabel": "Créer ou éditer un Intervention",
+        "notFound": "Aucun Intervention trouvé"
+      },
+      "created": "Un nouveau Intervention a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Intervention avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Intervention avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Intervention {{ id }} ?"
+      },
+      "detail": {
+        "title": "Intervention"
+      },
+      "id": "ID",
+      "title": "Title",
+      "description": "Description",
+      "createdBy": "Created By",
+      "createdAt": "Created At",
+      "attachments": "Attachments",
+      "notes": "Notes",
+      "procedure": "Procedure",
+      "ticket": "Ticket"
+    }
+  }
+}

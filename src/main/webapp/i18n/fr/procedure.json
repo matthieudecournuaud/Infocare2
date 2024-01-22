@@ -1,0 +1,36 @@
+{
+  "infocare2App": {
+    "procedure": {
+      "home": {
+        "title": "Procedures",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Procedure",
+        "createOrEditLabel": "Créer ou éditer un Procedure",
+        "notFound": "Aucun Procedure trouvé"
+      },
+      "created": "Un nouveau Procedure a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Procedure avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Procedure avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Procedure {{ id }} ?"
+      },
+      "detail": {
+        "title": "Procedure"
+      },
+      "id": "ID",
+      "name": "Name",
+      "description": "Description",
+      "category": "Category",
+      "procedureId": "Procedure Id",
+      "stepByStepGuide": "Step By Step Guide",
+      "estimatedTime": "Estimated Time",
+      "requiredTools": "Required Tools",
+      "skillsRequired": "Skills Required",
+      "safetyInstructions": "Safety Instructions",
+      "lastReviewed": "Last Reviewed",
+      "reviewedBy": "Reviewed By",
+      "attachments": "Attachments",
+      "intervention": "Intervention"
+    }
+  }
+}

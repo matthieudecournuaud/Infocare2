@@ -1,0 +1,152 @@
+<div>
+  <h2 id="page-heading" data-cy="InterventionHeading">
+    <span jhiTranslate="infocare2App.intervention.home.title">Interventions</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
+        <span jhiTranslate="infocare2App.intervention.home.refreshListLabel">Actualiser la liste</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-intervention"
+        [routerLink]="['/intervention/new']"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="infocare2App.intervention.home.createLabel">Créer un nouveau Intervention</span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  @if (interventions?.length === 0) {
+    <div class="alert alert-warning" id="no-result">
+      <span jhiTranslate="infocare2App.intervention.home.notFound">Aucun Intervention trouvé</span>
+    </div>
+  }
+
+  @if (interventions && interventions.length > 0) {
+    <div class="table-responsive table-entities" id="entities">
+      <table class="table table-striped" aria-describedby="page-heading">
+        <thead>
+          <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+            <th scope="col" jhiSortBy="id">
+              <div class="d-flex">
+                <span jhiTranslate="global.field.id">ID</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="title">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.intervention.title">Title</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="description">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.intervention.description">Description</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="createdBy">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.intervention.createdBy">Created By</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="createdAt">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.intervention.createdAt">Created At</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="attachments">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.intervention.attachments">Attachments</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="notes">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.intervention.notes">Notes</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="procedure.id">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.intervention.procedure">Procedure</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="ticket.id">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.intervention.ticket">Ticket</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (intervention of interventions; track trackId) {
+            <tr data-cy="entityTable">
+              <td>
+                <a [routerLink]="['/intervention', intervention.id, 'view']">{{ intervention.id }}</a>
+              </td>
+              <td>{{ intervention.title }}</td>
+              <td>{{ intervention.description }}</td>
+              <td>{{ intervention.createdBy }}</td>
+              <td>{{ intervention.createdAt | formatMediumDate }}</td>
+              <td>{{ intervention.attachments }}</td>
+              <td>{{ intervention.notes }}</td>
+              <td>
+                @if (intervention.procedure) {
+                  <div>
+                    <a [routerLink]="['/procedure', intervention.procedure.id, 'view']">{{ intervention.procedure.id }}</a>
+                  </div>
+                }
+              </td>
+              <td>
+                @if (intervention.ticket) {
+                  <div>
+                    <a [routerLink]="['/ticket', intervention.ticket.id, 'view']">{{ intervention.ticket.id }}</a>
+                  </div>
+                }
+              </td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <a [routerLink]="['/intervention', intervention.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
+                    <fa-icon icon="eye"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.view">Voir</span>
+                  </a>
+
+                  <a [routerLink]="['/intervention', intervention.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton">
+                    <fa-icon icon="pencil-alt"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Editer</span>
+                  </a>
+
+                  <button type="submit" (click)="delete(intervention)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
+                    <fa-icon icon="times"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Supprimer</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

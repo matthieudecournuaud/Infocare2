@@ -1,0 +1,70 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (company) {
+      <div>
+        <h2 data-cy="companyDetailsHeading"><span jhiTranslate="infocare2App.company.detail.title">Company</span></h2>
+
+        <hr />
+
+        <jhi-alert-error></jhi-alert-error>
+
+        <jhi-alert></jhi-alert>
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ company.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.company.name">Name</span></dt>
+          <dd>
+            <span>{{ company.name }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.company.phone">Phone</span></dt>
+          <dd>
+            <span>{{ company.phone }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.company.siret">Siret</span></dt>
+          <dd>
+            <span>{{ company.siret }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.company.address">Address</span></dt>
+          <dd>
+            <span>{{ company.address }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.company.email">Email</span></dt>
+          <dd>
+            <span>{{ company.email }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.company.contactPerson">Contact Person</span></dt>
+          <dd>
+            <span>{{ company.contactPerson }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.company.contactPersonPhone">Contact Person Phone</span></dt>
+          <dd>
+            <span>{{ company.contactPersonPhone }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.company.contactPersonEmail">Contact Person Email</span></dt>
+          <dd>
+            <span>{{ company.contactPersonEmail }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.company.size">Size</span></dt>
+          <dd>
+            <span>{{ company.size }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.company.notes">Notes</span></dt>
+          <dd>
+            <span>{{ company.notes }}</span>
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
+        </button>
+
+        <button type="button" [routerLink]="['/company', company.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,23 @@
+{
+  "infocare2App": {
+    "applicationUserTicket": {
+      "home": {
+        "title": "ApplicationUserTickets",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Application User Ticket",
+        "createOrEditLabel": "Créer ou éditer un Application User Ticket",
+        "notFound": "Aucun Application User Ticket trouvé"
+      },
+      "created": "Un nouveau Application User Ticket a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Application User Ticket avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Application User Ticket avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Application User Ticket {{ id }} ?"
+      },
+      "detail": {
+        "title": "Application User Ticket"
+      },
+      "id": "ID"
+    }
+  }
+}

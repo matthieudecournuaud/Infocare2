@@ -1,0 +1,70 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (intervention) {
+      <div>
+        <h2 data-cy="interventionDetailsHeading"><span jhiTranslate="infocare2App.intervention.detail.title">Intervention</span></h2>
+
+        <hr />
+
+        <jhi-alert-error></jhi-alert-error>
+
+        <jhi-alert></jhi-alert>
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ intervention.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.intervention.title">Title</span></dt>
+          <dd>
+            <span>{{ intervention.title }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.intervention.description">Description</span></dt>
+          <dd>
+            <span>{{ intervention.description }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.intervention.createdBy">Created By</span></dt>
+          <dd>
+            <span>{{ intervention.createdBy }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.intervention.createdAt">Created At</span></dt>
+          <dd>
+            <span>{{ intervention.createdAt | formatMediumDate }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.intervention.attachments">Attachments</span></dt>
+          <dd>
+            <span>{{ intervention.attachments }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.intervention.notes">Notes</span></dt>
+          <dd>
+            <span>{{ intervention.notes }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.intervention.procedure">Procedure</span></dt>
+          <dd>
+            @if (intervention.procedure) {
+              <div>
+                <a [routerLink]="['/procedure', intervention.procedure.id, 'view']">{{ intervention.procedure.id }}</a>
+              </div>
+            }
+          </dd>
+          <dt><span jhiTranslate="infocare2App.intervention.ticket">Ticket</span></dt>
+          <dd>
+            @if (intervention.ticket) {
+              <div>
+                <a [routerLink]="['/ticket', intervention.ticket.id, 'view']">{{ intervention.ticket.id }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
+        </button>
+
+        <button type="button" [routerLink]="['/intervention', intervention.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

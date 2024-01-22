@@ -48,6 +48,21 @@ public class CacheConfiguration {
             createCache(cm, com.backend.infocare.domain.User.class.getName());
             createCache(cm, com.backend.infocare.domain.Authority.class.getName());
             createCache(cm, com.backend.infocare.domain.User.class.getName() + ".authorities");
+            createCache(cm, com.backend.infocare.domain.Ticket.class.getName());
+            createCache(cm, com.backend.infocare.domain.Ticket.class.getName() + ".comments");
+            createCache(cm, com.backend.infocare.domain.Ticket.class.getName() + ".interventions");
+            createCache(cm, com.backend.infocare.domain.Ticket.class.getName() + ".applicationUsers");
+            createCache(cm, com.backend.infocare.domain.ApplicationUser.class.getName());
+            createCache(cm, com.backend.infocare.domain.ApplicationUser.class.getName() + ".tickets");
+            createCache(cm, com.backend.infocare.domain.ApplicationUserTicket.class.getName());
+            createCache(cm, com.backend.infocare.domain.Category.class.getName());
+            createCache(cm, com.backend.infocare.domain.Status.class.getName());
+            createCache(cm, com.backend.infocare.domain.Priority.class.getName());
+            createCache(cm, com.backend.infocare.domain.Material.class.getName());
+            createCache(cm, com.backend.infocare.domain.Company.class.getName());
+            createCache(cm, com.backend.infocare.domain.Comment.class.getName());
+            createCache(cm, com.backend.infocare.domain.Intervention.class.getName());
+            createCache(cm, com.backend.infocare.domain.Procedure.class.getName());
             // jhipster-needle-ehcache-add-entry
         };
     }

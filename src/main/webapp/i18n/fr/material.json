@@ -1,0 +1,35 @@
+{
+  "infocare2App": {
+    "material": {
+      "home": {
+        "title": "Materials",
+        "refreshListLabel": "Actualiser la liste",
+        "createLabel": "Créer un nouveau Material",
+        "createOrEditLabel": "Créer ou éditer un Material",
+        "notFound": "Aucun Material trouvé"
+      },
+      "created": "Un nouveau Material a été créé avec l'identifiant {{ param }}",
+      "updated": "Le Material avec l'identifiant {{ param }} a été mis à jour",
+      "deleted": "Le Material avec l'identifiant {{ param }} a été supprimé",
+      "delete": {
+        "question": "Êtes-vous certain de vouloir supprimer le Material {{ id }} ?"
+      },
+      "detail": {
+        "title": "Material"
+      },
+      "id": "ID",
+      "name": "Name",
+      "type": "Type",
+      "purchaseDate": "Purchase Date",
+      "warrantyEndDate": "Warranty End Date",
+      "manufacturer": "Manufacturer",
+      "model": "Model",
+      "statusMaterial": "Status Material",
+      "lastMaintenanceDate": "Last Maintenance Date",
+      "note": "Note",
+      "serialNumber": "Serial Number",
+      "company": "Company",
+      "ticket": "Ticket"
+    }
+  }
+}

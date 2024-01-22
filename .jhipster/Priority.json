@@ -1,0 +1,30 @@
+{
+  "annotations": {
+    "changelogDate": "20240122134138"
+  },
+  "applications": "*",
+  "entityTableName": "priority",
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "maxlength"],
+      "fieldValidateRulesMaxlength": "50"
+    },
+    {
+      "fieldName": "description",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "500"
+    },
+    {
+      "fieldName": "colorCode",
+      "fieldType": "String",
+      "fieldValidateRules": ["maxlength"],
+      "fieldValidateRulesMaxlength": "7"
+    }
+  ],
+  "name": "Priority",
+  "relationships": [],
+  "searchEngine": "no"
+}

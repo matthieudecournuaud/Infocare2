@@ -1,0 +1,174 @@
+<div>
+  <h2 id="page-heading" data-cy="ProcedureHeading">
+    <span jhiTranslate="infocare2App.procedure.home.title">Procedures</span>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
+        <span jhiTranslate="infocare2App.procedure.home.refreshListLabel">Actualiser la liste</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-procedure"
+        [routerLink]="['/procedure/new']"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="infocare2App.procedure.home.createLabel">Créer un nouveau Procedure</span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  @if (procedures?.length === 0) {
+    <div class="alert alert-warning" id="no-result">
+      <span jhiTranslate="infocare2App.procedure.home.notFound">Aucun Procedure trouvé</span>
+    </div>
+  }
+
+  @if (procedures && procedures.length > 0) {
+    <div class="table-responsive table-entities" id="entities">
+      <table class="table table-striped" aria-describedby="page-heading">
+        <thead>
+          <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+            <th scope="col" jhiSortBy="id">
+              <div class="d-flex">
+                <span jhiTranslate="global.field.id">ID</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="name">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.name">Name</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="description">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.description">Description</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="category">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.category">Category</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="procedureId">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.procedureId">Procedure Id</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="stepByStepGuide">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.stepByStepGuide">Step By Step Guide</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="estimatedTime">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.estimatedTime">Estimated Time</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="requiredTools">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.requiredTools">Required Tools</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="skillsRequired">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.skillsRequired">Skills Required</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="safetyInstructions">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.safetyInstructions">Safety Instructions</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="lastReviewed">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.lastReviewed">Last Reviewed</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="reviewedBy">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.reviewedBy">Reviewed By</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="attachments">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.procedure.attachments">Attachments</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (procedure of procedures; track trackId) {
+            <tr data-cy="entityTable">
+              <td>
+                <a [routerLink]="['/procedure', procedure.id, 'view']">{{ procedure.id }}</a>
+              </td>
+              <td>{{ procedure.name }}</td>
+              <td>{{ procedure.description }}</td>
+              <td>{{ procedure.category }}</td>
+              <td>{{ procedure.procedureId }}</td>
+              <td>{{ procedure.stepByStepGuide }}</td>
+              <td>{{ procedure.estimatedTime }}</td>
+              <td>{{ procedure.requiredTools }}</td>
+              <td>{{ procedure.skillsRequired }}</td>
+              <td>{{ procedure.safetyInstructions }}</td>
+              <td>{{ procedure.lastReviewed | formatMediumDate }}</td>
+              <td>{{ procedure.reviewedBy }}</td>
+              <td>{{ procedure.attachments }}</td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <a [routerLink]="['/procedure', procedure.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
+                    <fa-icon icon="eye"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.view">Voir</span>
+                  </a>
+
+                  <a [routerLink]="['/procedure', procedure.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton">
+                    <fa-icon icon="pencil-alt"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Editer</span>
+                  </a>
+
+                  <button type="submit" (click)="delete(procedure)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
+                    <fa-icon icon="times"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Supprimer</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
