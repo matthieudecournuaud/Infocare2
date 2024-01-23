@@ -17,7 +17,7 @@ import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
   imports: [SharedModule, RouterModule],
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  recentTickets: ITicket[] = []; // Initialisé à un tableau vide
+  recentTickets: ITicket[] = [];
   account: Account | null = null;
   showSuccessAlert = true;
   private readonly destroy$ = new Subject<void>();
@@ -34,11 +34,11 @@ export class HomeComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(account => {
         this.account = account;
-        this.showSuccessAlert = !!account; // Set to false if account is null
+        this.showSuccessAlert = !!account;
       });
   }
   logout(): void {
-    this.accountService.logout(); // Supposons que cette méthode efface l'état d'authentification
+    this.accountService.logout();
     this.account = null; // Réinitialise l'état du compte
     this.router.navigate(['/login']); // Navigue vers la page de connexion
   }

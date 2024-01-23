@@ -35,6 +35,8 @@ Main page styles
     .neumorphic-content {
       /* Styles pour le contenu du dashboard */
       color: #333;
+      display: flex;
+      justify-content: space-around;
 
       /* Couleur du texte du contenu */
       p {

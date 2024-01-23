@@ -1,7 +1,9 @@
 package com.backend.infocare.web.rest;
 
 import com.backend.infocare.domain.Ticket;
+import com.backend.infocare.domain.User;
 import com.backend.infocare.repository.TicketRepository;
+import com.backend.infocare.service.UserService;
 import com.backend.infocare.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -13,7 +15,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import tech.jhipster.web.util.HeaderUtil;
@@ -35,16 +39,20 @@ public class TicketResource {
     private String applicationName;
 
     private final TicketRepository ticketRepository;
+    private final UserService userService;
 
-    public TicketResource(TicketRepository ticketRepository) {
+    public TicketResource(TicketRepository ticketRepository, UserService userService) {
         this.ticketRepository = ticketRepository;
+        this.userService = userService;
     }
 
     /**
      * {@code POST  /tickets} : Create a new ticket.
      *
      * @param ticket the ticket to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new ticket, or with status {@code 400 (Bad Request)} if the ticket has already an ID.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with
+     *         body the new ticket, or with status {@code 400 (Bad Request)} if the
+     *         ticket has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
@@ -63,11 +71,13 @@ public class TicketResource {
     /**
      * {@code PUT  /tickets/:id} : Updates an existing ticket.
      *
-     * @param id the id of the ticket to save.
+     * @param id     the id of the ticket to save.
      * @param ticket the ticket to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated ticket,
-     * or with status {@code 400 (Bad Request)} if the ticket is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the ticket couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated ticket,
+     *         or with status {@code 400 (Bad Request)} if the ticket is not valid,
+     *         or with status {@code 500 (Internal Server Error)} if the ticket
+     *         couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
@@ -95,14 +105,17 @@ public class TicketResource {
     }
 
     /**
-     * {@code PATCH  /tickets/:id} : Partial updates given fields of an existing ticket, field will ignore if it is null
+     * {@code PATCH  /tickets/:id} : Partial updates given fields of an existing
+     * ticket, field will ignore if it is null
      *
-     * @param id the id of the ticket to save.
+     * @param id     the id of the ticket to save.
      * @param ticket the ticket to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated ticket,
-     * or with status {@code 400 (Bad Request)} if the ticket is not valid,
-     * or with status {@code 404 (Not Found)} if the ticket is not found,
-     * or with status {@code 500 (Internal Server Error)} if the ticket couldn't be updated.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the updated ticket,
+     *         or with status {@code 400 (Bad Request)} if the ticket is not valid,
+     *         or with status {@code 404 (Not Found)} if the ticket is not found,
+     *         or with status {@code 500 (Internal Server Error)} if the ticket
+     *         couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
@@ -166,7 +179,8 @@ public class TicketResource {
     /**
      * {@code GET  /tickets} : get all the tickets.
      *
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of tickets in body.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list
+     *         of tickets in body.
      */
     @GetMapping("")
     public List<Ticket> getAllTickets() {
@@ -178,7 +192,8 @@ public class TicketResource {
      * {@code GET  /tickets/:id} : get the "id" ticket.
      *
      * @param id the id of the ticket to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the ticket, or with status {@code 404 (Not Found)}.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body
+     *         the ticket, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
     public ResponseEntity<Ticket> getTicket(@PathVariable("id") Long id) {
@@ -201,5 +216,18 @@ public class TicketResource {
             .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
+    }
+
+    @GetMapping("/recent")
+    public ResponseEntity<List<Ticket>> getRecentTickets() {
+        String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<User> user = userService.getUserWithAuthoritiesByLogin(userLogin);
+        if (!user.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Long applicationUserId = user.get().getId();
+
+        List<Ticket> recentTickets = ticketRepository.findTop4ByApplicationUsers_IdOrderByCreatedAtDesc(applicationUserId);
+        return ResponseEntity.ok(recentTickets);
     }
 }
