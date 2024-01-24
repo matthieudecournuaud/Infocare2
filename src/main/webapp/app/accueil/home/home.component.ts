@@ -39,8 +39,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
   logout(): void {
     this.accountService.logout();
-    this.account = null; // Réinitialise l'état du compte
-    this.router.navigate(['/login']); // Navigue vers la page de connexion
+    this.account = null;
+    this.router.navigate(['/login']);
   }
 
   login(): void {
@@ -53,16 +53,15 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   loadRecentTickets() {
-    this.ticketService.queryRecent().subscribe(
-      (res: HttpResponse<ITicket[]>) => {
-        this.recentTickets = res.body || []; // Assurez-vous que recentTickets est toujours un tableau
+    this.ticketService.queryRecent().subscribe({
+      next: (res: HttpResponse<ITicket[]>) => {
+        this.recentTickets = res.body || [];
       },
-      (res: HttpErrorResponse) => this.onError(res.message),
-    );
+      error: (res: HttpErrorResponse) => this.onError(res.message),
+    });
   }
 
   private onError(errorMessage: string): void {
-    // Implémentez votre logique de gestion des erreurs ici
     console.error(errorMessage);
   }
 }

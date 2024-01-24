@@ -27,10 +27,8 @@
   <div class="neumorphic-block">
     <h1>Dashboard</h1>
     <div class="neumorphic-content">
-      <!-- Boucle sur chaque ticket dans recentTickets -->
       <div *ngFor="let ticket of recentTickets" class="card border-primary mb-3" style="max-width: 20rem">
         <div class="card-header">{{ ticket.title }}</div>
-        <!-- Affiche le titre du ticket -->
         <div class="card-body">
           <div>
             {{ ticket.description }}
@@ -38,14 +36,13 @@
           <div></div>
           <label class="ticket-label" for="progress-ticket"
             >Status du ticket:
-            <span class="badge bg-primary">
-              {{ ticket }}
+            <span class="badge bg-primary statusTicket">
+              {{ ticket.status?.statusCode }}
             </span>
           </label>
           <div class="progress">
             <div class="progress-bar" role="progressbar" style="width: 5%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
           </div>
-          <!-- Vous pouvez ajouter plus de détails sur le ticket ici si nécessaire -->
         </div>
       </div>
     </div>

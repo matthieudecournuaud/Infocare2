@@ -8,7 +8,7 @@
     "app:start": "./mvnw",
     "app:up": "docker compose -f src/main/docker/app.yml up --wait",
     "backend:build-cache": "./mvnw dependency:go-offline -ntp",
-    "backend:debug": "./mvnw -Dspring-boot.run.jvmArguments=\"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000\"",
+    "backend:debug": "./mvnw -Dspring-boot.run.jvmArguments=\"-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000\"",
     "backend:doc:test": "./mvnw -ntp javadoc:javadoc --batch-mode",
     "backend:info": "./mvnw -ntp enforcer:display-info --batch-mode",
     "backend:nohttp:test": "./mvnw -ntp checkstyle:check --batch-mode",

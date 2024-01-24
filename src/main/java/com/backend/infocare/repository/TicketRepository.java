@@ -11,5 +11,5 @@ import org.springframework.stereotype.Repository;
 @SuppressWarnings("unused")
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
-    List<Ticket> findTop4ByApplicationUsers_IdOrderByCreatedAtDesc(Long applicationUserId);
+    List<Ticket> findTop4ByApplicationUsers_UserIdOrderByCreatedAtDesc(Long applicationUserId);
 }

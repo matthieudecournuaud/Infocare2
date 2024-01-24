@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -227,7 +228,12 @@ public class TicketResource {
         }
         Long applicationUserId = user.get().getId();
 
-        List<Ticket> recentTickets = ticketRepository.findTop4ByApplicationUsers_IdOrderByCreatedAtDesc(applicationUserId);
-        return ResponseEntity.ok(recentTickets);
+        log.debug(applicationUserId + "");
+        List<Ticket> recentTickets = ticketRepository.findTop4ByApplicationUsers_UserIdOrderByCreatedAtDesc(applicationUserId);
+        if (CollectionUtils.isEmpty(recentTickets)) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(recentTickets);
+        }
     }
 }
