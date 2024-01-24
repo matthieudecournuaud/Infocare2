@@ -33,18 +33,26 @@ Main page styles
     }
 
     .neumorphic-content {
-      /* Styles pour le contenu du dashboard */
       color: #333;
       display: flex;
       justify-content: space-around;
+      padding-top: 3rem;
 
-      /* Couleur du texte du contenu */
+      .card {
+        width: 24%;
+
+        .button-footer {
+          border-radius: 6px;
+          box-shadow: none;
+        }
+      }
+
       p {
         margin-bottom: 10px;
-        /* Espace après chaque paragraphe */
       }
 
       .statusTicket {
+        width: 7rem;
         margin-left: 1rem;
       }
 
@@ -54,11 +62,10 @@ Main page styles
         padding-bottom: 1rem;
         padding-top: 2rem;
       }
-    }
 
-    .progress {
-      height: 10px;
-      /* Hauteur souhaitée de la barre de progression */
+      .card-footer {
+        border-top: solid 1px #ced7e3;
+      }
     }
   }
 }

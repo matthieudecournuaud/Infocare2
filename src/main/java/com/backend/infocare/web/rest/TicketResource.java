@@ -2,6 +2,7 @@ package com.backend.infocare.web.rest;
 
 import com.backend.infocare.domain.Ticket;
 import com.backend.infocare.domain.User;
+import com.backend.infocare.repository.StatusRepository;
 import com.backend.infocare.repository.TicketRepository;
 import com.backend.infocare.service.UserService;
 import com.backend.infocare.web.rest.errors.BadRequestAlertException;
@@ -12,6 +13,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +43,19 @@ public class TicketResource {
 
     private final TicketRepository ticketRepository;
     private final UserService userService;
+    private final StatusRepository statusRepository;
 
-    public TicketResource(TicketRepository ticketRepository, UserService userService) {
+    public TicketResource(TicketRepository ticketRepository, UserService userService, StatusRepository statusRepository) {
         this.ticketRepository = ticketRepository;
         this.userService = userService;
+        this.statusRepository = statusRepository;
+    }
+
+    private Ticket enrichTicketStatus(Ticket ticket) {
+        if (ticket != null && ticket.getStatus() != null && ticket.getStatus().getId() != null) {
+            ticket.setStatus(statusRepository.findById(ticket.getStatus().getId()).orElse(null));
+        }
+        return ticket;
     }
 
     /**
@@ -199,7 +210,7 @@ public class TicketResource {
     @GetMapping("/{id}")
     public ResponseEntity<Ticket> getTicket(@PathVariable("id") Long id) {
         log.debug("REST request to get Ticket : {}", id);
-        Optional<Ticket> ticket = ticketRepository.findById(id);
+        Optional<Ticket> ticket = ticketRepository.findById(id).map(this::enrichTicketStatus);
         return ResponseUtil.wrapOrNotFound(ticket);
     }
 
@@ -229,8 +240,12 @@ public class TicketResource {
         Long applicationUserId = user.get().getId();
 
         log.debug(applicationUserId + "");
-        List<Ticket> recentTickets = ticketRepository.findTop4ByApplicationUsers_UserIdOrderByCreatedAtDesc(applicationUserId);
-        if (CollectionUtils.isEmpty(recentTickets)) {
+        List<Ticket> recentTickets = ticketRepository
+            .findTop4ByApplicationUsers_UserIdOrderByCreatedAtDesc(applicationUserId)
+            .stream()
+            .map(this::enrichTicketStatus)
+            .collect(Collectors.toList());
+        if (recentTickets.isEmpty()) {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.ok(recentTickets);
