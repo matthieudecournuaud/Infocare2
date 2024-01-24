@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -250,5 +249,21 @@ public class TicketResource {
         } else {
             return ResponseEntity.ok(recentTickets);
         }
+    }
+
+    @GetMapping("/user/{username}/resolved-tickets-percentage")
+    public ResponseEntity<Double> getResolvedTicketsPercentage(@PathVariable String username) {
+        Optional<User> user = userService.getUserWithAuthoritiesByLogin(username);
+        if (!user.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Long userId = user.get().getId();
+        Long totalTickets = ticketRepository.countByApplicationUsers_UserId(userId);
+        Long resolvedTickets = ticketRepository.countResolvedTicketsByUserId(userId);
+        if (totalTickets == 0) {
+            return ResponseEntity.ok(0.0);
+        }
+        double percentage = ((double) resolvedTickets / totalTickets) * 100;
+        return ResponseEntity.ok(percentage);
     }
 }

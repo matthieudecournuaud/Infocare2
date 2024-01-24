@@ -72,6 +72,10 @@ export class TicketService {
       .pipe(map(res => this.convertResponseArrayFromServerForRecent(res)));
   }
 
+  getResolvedTicketsPercentage(username: string): Observable<number> {
+    return this.http.get<number>(`${this.resourceUrl}/user/${username}/resolved-tickets-percentage`);
+  }
+
   query(req?: any): Observable<EntityArrayResponseType> {
     const options = createRequestOption(req);
     return this.http
