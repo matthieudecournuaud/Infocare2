@@ -15,6 +15,9 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     @Query("SELECT count(t) FROM Ticket t JOIN t.applicationUsers u WHERE u.id = :userId AND t.status.statusCode = 'RESOLVED'")
     Long countResolvedTicketsByUserId(@Param("userId") Long userId);
 
+    @Query("SELECT t.priority.name, COUNT(t) FROM Ticket t JOIN t.applicationUsers u WHERE u.id = :userId GROUP BY t.priority.name")
+    List<Object[]> countTicketsByPriorityAndUserId(@Param("userId") Long userId);
+
     @Query("SELECT count(t) FROM Ticket t JOIN t.applicationUsers u WHERE u.id = :userId")
     Long countByApplicationUsers_UserId(@Param("userId") Long userId);
 

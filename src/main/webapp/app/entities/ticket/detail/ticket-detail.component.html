@@ -55,7 +55,7 @@
           <dd>
             @if (ticket.material) {
               <div>
-                <a [routerLink]="['/material', ticket.material.id, 'view']">{{ ticket.material.id }}</a>
+                <a [routerLink]="['/material', ticket.material.id, 'view']">{{ ticket.material.name }}</a>
               </div>
             }
           </dd>
@@ -63,7 +63,7 @@
           <dd>
             @if (ticket.category) {
               <div>
-                <a [routerLink]="['/category', ticket.category.id, 'view']">{{ ticket.category.id }}</a>
+                <a [routerLink]="['/category', ticket.category.id, 'view']">{{ ticket.category.name }}</a>
               </div>
             }
           </dd>
@@ -71,15 +71,15 @@
           <dd>
             @if (ticket.status) {
               <div>
-                <a [routerLink]="['/status', ticket.status.id, 'view']">{{ ticket.status.id }}</a>
+                <a [routerLink]="['/status', ticket.status.id, 'view']">{{ ticket.status.statusCode }}</a>
               </div>
             }
           </dd>
           <dt><span jhiTranslate="infocare2App.ticket.priority">Priority</span></dt>
           <dd>
             @if (ticket.priority) {
-              <div>
-                <a [routerLink]="['/priority', ticket.priority.id, 'view']">{{ ticket.priority.id }}</a>
+              <div *ngIf="ticket?.priority">
+                <a [routerLink]="['/priority', ticket.priority.id, 'view']">{{ ticket.priority.name }}</a>
               </div>
             }
           </dd>
@@ -89,7 +89,12 @@
           <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
         </button>
 
-        <button type="button" [routerLink]="['/ticket', ticket.id, 'edit']" class="btn btn-primary">
+        <button
+          type="button"
+          *jhiHasAnyAuthority="['ROLE_ADMIN', 'ROLE_USER']"
+          [routerLink]="['/ticket', ticket.id, 'edit']"
+          class="btn btn-primary"
+        >
           <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
         </button>
       </div>

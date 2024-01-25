@@ -2,6 +2,9 @@ package com.backend.infocare.web.rest;
 
 import com.backend.infocare.domain.Ticket;
 import com.backend.infocare.domain.User;
+import com.backend.infocare.repository.CategoryRepository;
+import com.backend.infocare.repository.MaterialRepository;
+import com.backend.infocare.repository.PriorityRepository;
 import com.backend.infocare.repository.StatusRepository;
 import com.backend.infocare.repository.TicketRepository;
 import com.backend.infocare.service.UserService;
@@ -43,16 +46,50 @@ public class TicketResource {
     private final TicketRepository ticketRepository;
     private final UserService userService;
     private final StatusRepository statusRepository;
+    private final PriorityRepository priorityRepository;
+    private final MaterialRepository materialRepository;
+    private final CategoryRepository categoryRepository;
 
-    public TicketResource(TicketRepository ticketRepository, UserService userService, StatusRepository statusRepository) {
+    public TicketResource(
+        TicketRepository ticketRepository,
+        UserService userService,
+        StatusRepository statusRepository,
+        PriorityRepository priorityRepository,
+        MaterialRepository materialRepository,
+        CategoryRepository categoryRepository
+    ) {
         this.ticketRepository = ticketRepository;
         this.userService = userService;
         this.statusRepository = statusRepository;
+        this.priorityRepository = priorityRepository;
+        this.materialRepository = materialRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     private Ticket enrichTicketStatus(Ticket ticket) {
         if (ticket != null && ticket.getStatus() != null && ticket.getStatus().getId() != null) {
             ticket.setStatus(statusRepository.findById(ticket.getStatus().getId()).orElse(null));
+        }
+        return ticket;
+    }
+
+    private Ticket enrichTicketPriority(Ticket ticket) {
+        if (ticket != null && ticket.getPriority() != null && ticket.getPriority().getId() != null) {
+            ticket.setPriority(priorityRepository.findById(ticket.getPriority().getId()).orElse(null));
+        }
+        return ticket;
+    }
+
+    private Ticket enrichTicketMaterial(Ticket ticket) {
+        if (ticket != null && ticket.getMaterial() != null && ticket.getMaterial().getId() != null) {
+            ticket.setMaterial(materialRepository.findById(ticket.getMaterial().getId()).orElse(null));
+        }
+        return ticket;
+    }
+
+    private Ticket enrichTicketCategory(Ticket ticket) {
+        if (ticket != null && ticket.getCategory() != null && ticket.getCategory().getId() != null) {
+            ticket.setCategory(categoryRepository.findById(ticket.getCategory().getId()).orElse(null));
         }
         return ticket;
     }
@@ -209,7 +246,12 @@ public class TicketResource {
     @GetMapping("/{id}")
     public ResponseEntity<Ticket> getTicket(@PathVariable("id") Long id) {
         log.debug("REST request to get Ticket : {}", id);
-        Optional<Ticket> ticket = ticketRepository.findById(id).map(this::enrichTicketStatus);
+        Optional<Ticket> ticket = ticketRepository
+            .findById(id)
+            .map(this::enrichTicketStatus)
+            .map(this::enrichTicketPriority)
+            .map(this::enrichTicketMaterial)
+            .map(this::enrichTicketCategory);
         return ResponseUtil.wrapOrNotFound(ticket);
     }
 
@@ -265,5 +307,21 @@ public class TicketResource {
         }
         double percentage = ((double) resolvedTickets / totalTickets) * 100;
         return ResponseEntity.ok(percentage);
+    }
+
+    @GetMapping("/user/{username}/tickets-by-priority")
+    public ResponseEntity<List<Object[]>> getTicketsCountByPriorityForUser(@PathVariable String username) {
+        Optional<User> user = userService.getUserWithAuthoritiesByLogin(username);
+        if (!user.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        Long userId = user.get().getId();
+
+        List<Object[]> ticketsCountByPriority = ticketRepository.countTicketsByPriorityAndUserId(userId);
+        if (ticketsCountByPriority.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(ticketsCountByPriority);
+        }
     }
 }

@@ -43,7 +43,7 @@
               </span>
             </label>
           </div>
-          <button type="button" class="btn btn-primary button-footer">Ouvrir</button>
+          <button type="button" class="btn btn-primary button-footer" [routerLink]="['/ticket', ticket.id, 'view']">Ouvrir</button>
         </div>
       </div>
     </div>
@@ -51,7 +51,24 @@
   <article id="article-graph">
     <div class="neumorphic-block-graph">
       <div class="graph">
-        <canvas id="doughnutChart"></canvas>
+        <h5>Status</h5>
+        <canvas id="doughnutChart1"></canvas>
+      </div>
+    </div>
+    <div class="neumorphic-block-graph">
+      <div class="graph">
+        <h5>Priorités</h5>
+        <canvas id="doughnutChart2"></canvas>
+      </div>
+    </div>
+    <div class="neumorphic-block-graph">
+      <div class="graph">
+        <canvas id="doughnutChart3"></canvas>
+      </div>
+    </div>
+    <div class="neumorphic-block-graph">
+      <div class="graph">
+        <canvas id="doughnutChart4"></canvas>
       </div>
     </div>
   </article>

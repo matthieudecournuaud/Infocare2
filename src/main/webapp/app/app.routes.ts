@@ -28,14 +28,6 @@ const routes: Routes = [
     loadChildren: () => import('./users/admin/admin.routes'),
   },
   {
-    path: 'technician',
-    data: {
-      authorities: [Authority.USER],
-    },
-    canActivate: [olsenGuard],
-    loadChildren: () => import('./users/technicien/technicien.routes'),
-  },
-  {
     path: 'client',
     data: {
       authorities: [Authority.CLIENT],

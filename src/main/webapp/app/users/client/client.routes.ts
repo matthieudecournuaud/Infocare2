@@ -1,18 +1,35 @@
 import { Routes } from '@angular/router';
+import MesTicketsComponent from './mes-tickets/mes-tickets.component';
+import MaterielsComponent from './materiels/materiels.component';
+import { olsenGuard } from 'app/olsen.guard';
+import NotificationsComponent from './notifications/notifications.component';
+import { ASC } from 'app/config/navigation.constants';
 
-const routes: Routes = [
+const clientRoutes: Routes = [
   {
     path: 'materiels',
-    loadComponent: () => import('./materiels/materiels.component'),
+    component: MaterielsComponent,
+    data: {
+      defaultSort: 'id,' + ASC,
+    },
+    canActivate: [olsenGuard],
   },
   {
     path: 'mes-tickets',
-    loadComponent: () => import('./mes-tickets/mes-tickets.component'),
+    component: MesTicketsComponent,
+    data: {
+      defaultSort: 'id,' + ASC,
+    },
+    canActivate: [olsenGuard],
   },
   {
     path: 'notifications',
-    loadComponent: () => import('./notifications/notifications.component'),
+    component: NotificationsComponent,
+    data: {
+      defaultSort: 'id,' + ASC,
+    },
+    canActivate: [olsenGuard],
   },
 ];
 
-export default routes;
+export default clientRoutes;

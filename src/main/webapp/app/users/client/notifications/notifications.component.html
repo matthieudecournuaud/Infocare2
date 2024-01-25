@@ -1,1 +1,145 @@
-<p>notifications works!</p>
+<div>
+  <h2 id="page-heading" data-cy="CommentHeading">
+    <span jhiTranslate="infocare2App.comment.home.title">Comments</span>
+
+    <div class="d-flex justify-content-end bouton-liste">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
+        <span jhiTranslate="infocare2App.comment.home.refreshListLabel">Actualiser la liste</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-comment"
+        [routerLink]="['/comment/new']"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="infocare2App.comment.home.createLabel">Créer un nouveau Comment</span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  @if (comments?.length === 0) {
+    <div class="alert alert-warning" id="no-result">
+      <span jhiTranslate="infocare2App.comment.home.notFound">Aucun Comment trouvé</span>
+    </div>
+  }
+
+  @if (comments && comments.length > 0) {
+    <div class="table-responsive table-entities" id="entities">
+      <table class="table table-striped" aria-describedby="page-heading">
+        <thead>
+          <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+            <th scope="col" jhiSortBy="id">
+              <div class="d-flex">
+                <span jhiTranslate="global.field.id">ID</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="title">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.comment.title">Title</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="type">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.comment.type">Type</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="visibility">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.comment.visibility">Visibility</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="description">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.comment.description">Description</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="editedBy">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.comment.editedBy">Edited By</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="editedAt">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.comment.editedAt">Edited At</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="attachments">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.comment.attachments">Attachments</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="responseToCommentId">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.comment.responseToCommentId">Response To Comment Id</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="ticket.id">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.comment.ticket">Ticket</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (comment of comments; track trackId) {
+            <tr data-cy="entityTable">
+              <td>
+                <a [routerLink]="['/comment', comment.id, 'view']">{{ comment.id }}</a>
+              </td>
+              <td>{{ comment.title }}</td>
+              <td>{{ comment.type }}</td>
+              <td>{{ comment.visibility }}</td>
+              <td>{{ comment.description }}</td>
+              <td>{{ comment.editedBy }}</td>
+              <td>{{ comment.editedAt | formatMediumDate }}</td>
+              <td>{{ comment.attachments }}</td>
+              <td>{{ comment.responseToCommentId }}</td>
+              <td>
+                @if (comment.ticket) {
+                  <div>
+                    <a [routerLink]="['/ticket', comment.ticket.id, 'view']">{{ comment.ticket.id }}</a>
+                  </div>
+                }
+              </td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <a [routerLink]="['/comment', comment.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
+                    <fa-icon icon="eye"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.view">Voir</span>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

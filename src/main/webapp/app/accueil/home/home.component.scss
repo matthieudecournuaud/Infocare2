@@ -71,7 +71,7 @@ Main page styles
 
   #article-graph {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
 
     .neumorphic-block-graph {
       background: #ffffff;
@@ -79,10 +79,12 @@ Main page styles
       box-shadow:
         8px 8px 15px rgba(163, 177, 198, 0.6),
         -8px -8px 15px rgba(255, 255, 255, 0.5);
-      padding: 30px;
-      width: 20%;
-      display: flex;
-      justify-content: space-evenly;
+      padding: 20px 0 20px 0;
+      width: 24%;
+    }
+
+    .graph {
+      text-align: center;
     }
   }
 }

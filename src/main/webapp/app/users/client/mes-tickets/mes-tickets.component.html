@@ -1,1 +1,192 @@
-<p>mes-tickets works!</p>
+<div>
+  <h2 id="page-heading" data-cy="TicketHeading">
+    <span jhiTranslate="infocare2App.ticket.home.title">Tickets</span>
+
+    <div class="d-flex justify-content-end bouton-liste">
+      <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
+        <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
+        <span jhiTranslate="infocare2App.ticket.home.refreshListLabel">Actualiser la liste</span>
+      </button>
+
+      <button
+        id="jh-create-entity"
+        data-cy="entityCreateButton"
+        class="btn btn-primary jh-create-entity create-ticket"
+        [routerLink]="['/ticket/new']"
+      >
+        <fa-icon icon="plus"></fa-icon>
+        <span jhiTranslate="infocare2App.ticket.home.createLabel">Créer un nouveau Ticket</span>
+      </button>
+    </div>
+  </h2>
+
+  <jhi-alert-error></jhi-alert-error>
+
+  <jhi-alert></jhi-alert>
+
+  @if (tickets?.length === 0) {
+    <div class="alert alert-warning" id="no-result">
+      <span jhiTranslate="infocare2App.ticket.home.notFound">Aucun Ticket trouvé</span>
+    </div>
+  }
+
+  @if (tickets && tickets.length > 0) {
+    <div class="table-responsive table-entities" id="entities">
+      <table class="table table-striped" aria-describedby="page-heading">
+        <thead>
+          <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+            <th scope="col" jhiSortBy="id">
+              <div class="d-flex">
+                <span jhiTranslate="global.field.id">ID</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="title">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.title">Title</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="description">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.description">Description</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="createdAt">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.createdAt">Created At</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="resolutionDate">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.resolutionDate">Resolution Date</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="closedAt">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.closedAt">Closed At</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="limitDate">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.limitDate">Limit Date</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="impact">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.impact">Impact</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="resolution">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.resolution">Resolution</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="attachments">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.attachments">Attachments</span>
+
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="material.id">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.material">Material</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="category.id">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.category">Category</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="status.id">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.status">Status</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="priority.id">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.priority">Priority</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ticket of tickets; track trackId) {
+            <tr data-cy="entityTable">
+              <td>
+                <a [routerLink]="['/ticket', ticket.id, 'view']">{{ ticket.id }}</a>
+              </td>
+              <td>{{ ticket.title }}</td>
+              <td>{{ ticket.description }}</td>
+              <td>{{ ticket.createdAt | formatMediumDate }}</td>
+              <td>{{ ticket.resolutionDate | formatMediumDate }}</td>
+              <td>{{ ticket.closedAt | formatMediumDate }}</td>
+              <td>{{ ticket.limitDate | formatMediumDate }}</td>
+              <td>{{ ticket.impact }}</td>
+              <td>{{ ticket.resolution }}</td>
+              <td>{{ ticket.attachments }}</td>
+              <td>
+                @if (ticket.material) {
+                  <div>
+                    <a [routerLink]="['/material', ticket.material.id, 'view']">{{ ticket.material.id }}</a>
+                  </div>
+                }
+              </td>
+              <td>
+                @if (ticket.category) {
+                  <div>
+                    <a [routerLink]="['/category', ticket.category.id, 'view']">{{ ticket.category.id }}</a>
+                  </div>
+                }
+              </td>
+              <td>
+                @if (ticket.status) {
+                  <div>
+                    <a [routerLink]="['/status', ticket.status.id, 'view']">{{ ticket.status.id }}</a>
+                  </div>
+                }
+              </td>
+              <td>
+                @if (ticket.priority) {
+                  <div>
+                    <a [routerLink]="['/priority', ticket.priority.id, 'view']">{{ ticket.priority.id }}</a>
+                  </div>
+                }
+              </td>
+              <td class="text-end">
+                <div class="btn-group">
+                  <a [routerLink]="['/ticket', ticket.id, 'view']" class="btn btn-info btn-sm" data-cy="entityDetailsButton">
+                    <fa-icon icon="eye"></fa-icon>
+                    <span class="d-none d-md-inline" jhiTranslate="entity.action.view">Voir</span>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

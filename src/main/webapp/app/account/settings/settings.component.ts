@@ -16,6 +16,9 @@ const initialAccount: Account = {} as Account;
   templateUrl: './settings.component.html',
 })
 export default class SettingsComponent implements OnInit {
+  previousState(): void {
+    window.history.back();
+  }
   success = false;
   languages = LANGUAGES;
 

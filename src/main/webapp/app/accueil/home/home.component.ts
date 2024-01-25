@@ -9,7 +9,10 @@ import { ITicket } from 'app/entities/ticket/ticket.model';
 import { TicketService } from 'app/entities/ticket/service/ticket.service';
 import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import Chart from 'chart.js/auto';
-
+interface PriorityData {
+  priorityName: string;
+  ticketCount: number;
+}
 @Component({
   standalone: true,
   selector: 'jhi-home',
@@ -31,6 +34,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   ) {}
   ngOnInit(): void {
     this.loadRecentTickets();
+    this.loadTicketsCountByPriority();
     this.accountService
       .getAuthenticationState()
       .pipe(takeUntil(this.destroy$))
@@ -39,29 +43,20 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.showSuccessAlert = !!account;
         if (account && account.login) {
           this.loadResolvedTicketsPercentage(account.login);
+          this.loadTicketsCountByPriority();
         }
       });
   }
 
-  loadResolvedTicketsPercentage(username: string) {
-    this.ticketService.getResolvedTicketsPercentage(username).subscribe(
-      percentage => {
-        this.resolvedTicketsPercentage = percentage;
-        this.updateDoughnutChart();
-      },
-      error => this.onError(error),
-    );
-  }
-
-  updateDoughnutChart() {
-    const ctxD = document.getElementById('doughnutChart') as HTMLCanvasElement;
-    const myLineChart = new Chart(ctxD, {
+  initializeDoughnutChart() {
+    const ctxD = document.getElementById('doughnutChart1') as HTMLCanvasElement;
+    const myDoughnutChart = new Chart(ctxD, {
       type: 'doughnut',
       data: {
         labels: ['Résolus', 'Non Résolus'],
         datasets: [
           {
-            data: [this.resolvedTicketsPercentage, 100 - this.resolvedTicketsPercentage],
+            data: [0, 100], // Initialisez avec 0% résolus et 100% non résolus
             backgroundColor: ['#46BFBD', '#F7464A'],
             hoverBackgroundColor: ['#5AD3D1', '#FF5A5E'],
           },
@@ -69,7 +64,28 @@ export class HomeComponent implements OnInit, OnDestroy {
       },
       options: {
         responsive: true,
-        aspectRatio: 2,
+      },
+    });
+  }
+
+  updateDoughnutChart() {
+    const ctxD = document.getElementById('doughnutChart1') as HTMLCanvasElement;
+    const myLineChart = new Chart(ctxD, {
+      type: 'doughnut',
+      data: {
+        labels: ['Résolus', 'Non Résolus'],
+        datasets: [
+          {
+            data: [this.resolvedTicketsPercentage, 100 - this.resolvedTicketsPercentage],
+            backgroundColor: ['#46BFBD', '#ED3446'],
+            hoverBackgroundColor: ['#5AD3D1', '#D9E3F1'],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        aspectRatio: 2.2,
+        cutout: '85%',
         plugins: {
           legend: {
             position: 'bottom',
@@ -91,22 +107,35 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  initializeDoughnutChart() {
-    const ctxD = document.getElementById('doughnutChart') as HTMLCanvasElement;
+  updatePriorityDoughnutChart(priorityData: PriorityData[]) {
+    const labels = priorityData.map(data => data.priorityName); // Noms des priorités
+    const data = priorityData.map(data => data.ticketCount);
+
+    const ctxD = document.getElementById('doughnutChart2') as HTMLCanvasElement;
     const myDoughnutChart = new Chart(ctxD, {
       type: 'doughnut',
       data: {
-        labels: ['Résolus', 'Non Résolus'],
+        labels: labels,
         datasets: [
           {
-            data: [0, 100], // Initialisez avec 0% résolus et 100% non résolus
-            backgroundColor: ['#46BFBD', '#F7464A'],
-            hoverBackgroundColor: ['#5AD3D1', '#FF5A5E'],
+            data: data,
+            backgroundColor: ['#ADD8E6', '#FFD700', '#FFA500', '#FF4500', '#90EE90', '#D3D3D3'],
+            hoverBackgroundColor: ['#B0E0E6', '#FFDAB9', '#FFA07A', '#FA8072', '#98FB98', '#C0C0C0'],
           },
         ],
       },
       options: {
         responsive: true,
+        aspectRatio: 2.2,
+        cutout: '85%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 14,
+            },
+          },
+        },
       },
     });
   }
@@ -137,5 +166,31 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private onError(errorMessage: string): void {
     console.error(errorMessage);
+  }
+
+  loadResolvedTicketsPercentage(username: string) {
+    this.ticketService.getResolvedTicketsPercentage(username).subscribe(
+      percentage => {
+        this.resolvedTicketsPercentage = percentage;
+        this.updateDoughnutChart();
+      },
+      error => this.onError(error),
+    );
+  }
+
+  loadTicketsCountByPriority(): void {
+    if (this.account && this.account.login) {
+      this.ticketService.getTicketsCountByPriorityForUser(this.account.login).subscribe(
+        (res: HttpResponse<Object[]>) => {
+          const priorityData = res.body || [];
+          const formattedData: PriorityData[] = priorityData.map((data: any) => ({
+            priorityName: data[0],
+            ticketCount: data[1],
+          }));
+          this.updatePriorityDoughnutChart(formattedData);
+        },
+        error => this.onError(error),
+      );
+    }
   }
 }

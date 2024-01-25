@@ -9,10 +9,6 @@ const routes: Routes = [
     path: 'client',
     loadChildren: () => import('./client/client.routes'),
   },
-  {
-    path: 'technician',
-    loadChildren: () => import('./technicien/technicien.routes'),
-  },
   /* jhipster-needle-add-entity-route - JHipster will add entity modules routes here */
 ];
 

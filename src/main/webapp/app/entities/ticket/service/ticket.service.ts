@@ -76,6 +76,10 @@ export class TicketService {
     return this.http.get<number>(`${this.resourceUrl}/user/${username}/resolved-tickets-percentage`);
   }
 
+  getTicketsCountByPriorityForUser(username: string): Observable<HttpResponse<Object[]>> {
+    return this.http.get<Object[]>(`${this.resourceUrl}/user/${username}/tickets-by-priority`, { observe: 'response' });
+  }
+
   query(req?: any): Observable<EntityArrayResponseType> {
     const options = createRequestOption(req);
     return this.http
