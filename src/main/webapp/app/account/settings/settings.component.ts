@@ -16,9 +16,6 @@ const initialAccount: Account = {} as Account;
   templateUrl: './settings.component.html',
 })
 export default class SettingsComponent implements OnInit {
-  previousState(): void {
-    window.history.back();
-  }
   success = false;
   languages = LANGUAGES;
 
@@ -54,6 +51,10 @@ export default class SettingsComponent implements OnInit {
         this.settingsForm.patchValue(account);
       }
     });
+  }
+
+  previousState(): void {
+    window.history.back();
   }
 
   save(): void {

@@ -1,7 +1,6 @@
 package com.backend.infocare.web.rest;
 
 import com.backend.infocare.domain.Ticket;
-import com.backend.infocare.domain.User;
 import com.backend.infocare.repository.CategoryRepository;
 import com.backend.infocare.repository.MaterialRepository;
 import com.backend.infocare.repository.PriorityRepository;
@@ -25,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
@@ -68,28 +68,28 @@ public class TicketResource {
 
     private Ticket enrichTicketStatus(Ticket ticket) {
         if (ticket != null && ticket.getStatus() != null && ticket.getStatus().getId() != null) {
-            ticket.setStatus(statusRepository.findById(ticket.getStatus().getId()).orElse(null));
+            ticket.setStatus(statusRepository.findById(ticket.getStatus().getId()).orElseThrow());
         }
         return ticket;
     }
 
     private Ticket enrichTicketPriority(Ticket ticket) {
         if (ticket != null && ticket.getPriority() != null && ticket.getPriority().getId() != null) {
-            ticket.setPriority(priorityRepository.findById(ticket.getPriority().getId()).orElse(null));
+            ticket.setPriority(priorityRepository.findById(ticket.getPriority().getId()).orElseThrow());
         }
         return ticket;
     }
 
     private Ticket enrichTicketMaterial(Ticket ticket) {
         if (ticket != null && ticket.getMaterial() != null && ticket.getMaterial().getId() != null) {
-            ticket.setMaterial(materialRepository.findById(ticket.getMaterial().getId()).orElse(null));
+            ticket.setMaterial(materialRepository.findById(ticket.getMaterial().getId()).orElseThrow());
         }
         return ticket;
     }
 
     private Ticket enrichTicketCategory(Ticket ticket) {
         if (ticket != null && ticket.getCategory() != null && ticket.getCategory().getId() != null) {
-            ticket.setCategory(categoryRepository.findById(ticket.getCategory().getId()).orElse(null));
+            ticket.setCategory(categoryRepository.findById(ticket.getCategory().getId()).orElseThrow());
         }
         return ticket;
     }
@@ -274,11 +274,10 @@ public class TicketResource {
     @GetMapping("/recent")
     public ResponseEntity<List<Ticket>> getRecentTickets() {
         String userLogin = SecurityContextHolder.getContext().getAuthentication().getName();
-        Optional<User> user = userService.getUserWithAuthoritiesByLogin(userLogin);
-        if (!user.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        Long applicationUserId = user.get().getId();
+        Long applicationUserId = userService
+            .getUserWithAuthoritiesByLogin(userLogin)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
+            .getId();
 
         log.debug(applicationUserId + "");
         List<Ticket> recentTickets = ticketRepository
@@ -295,11 +294,11 @@ public class TicketResource {
 
     @GetMapping("/user/{username}/resolved-tickets-percentage")
     public ResponseEntity<Double> getResolvedTicketsPercentage(@PathVariable String username) {
-        Optional<User> user = userService.getUserWithAuthoritiesByLogin(username);
-        if (!user.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        Long userId = user.get().getId();
+        Long userId = userService
+            .getUserWithAuthoritiesByLogin(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
+            .getId();
+
         Long totalTickets = ticketRepository.countByApplicationUsers_UserId(userId);
         Long resolvedTickets = ticketRepository.countResolvedTicketsByUserId(userId);
         if (totalTickets == 0) {
@@ -311,11 +310,10 @@ public class TicketResource {
 
     @GetMapping("/user/{username}/tickets-by-priority")
     public ResponseEntity<List<Object[]>> getTicketsCountByPriorityForUser(@PathVariable String username) {
-        Optional<User> user = userService.getUserWithAuthoritiesByLogin(username);
-        if (!user.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        Long userId = user.get().getId();
+        Long userId = userService
+            .getUserWithAuthoritiesByLogin(username)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND))
+            .getId();
 
         List<Object[]> ticketsCountByPriority = ticketRepository.countTicketsByPriorityAndUserId(userId);
         if (ticketsCountByPriority.isEmpty()) {

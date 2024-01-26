@@ -11,12 +11,6 @@ import { ApplicationConfigService } from '../config/application-config.service';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
-  logout() {
-    this.userIdentity = null;
-    this.authenticationState.next(null);
-    this.accountCache$ = null;
-    this.router.navigate(['/login']);
-  }
   private userIdentity: Account | null = null;
   private authenticationState = new ReplaySubject<Account | null>(1);
   private accountCache$?: Observable<Account> | null;
@@ -28,6 +22,13 @@ export class AccountService {
     private router: Router,
     private applicationConfigService: ApplicationConfigService,
   ) {}
+
+  logout(): void {
+    this.userIdentity = null;
+    this.authenticationState.next(null);
+    this.accountCache$ = null;
+    this.router.navigate(['/login']);
+  }
 
   save(account: Account): Observable<{}> {
     return this.http.post(this.applicationConfigService.getEndpointFor('api/account'), account);
@@ -56,10 +57,6 @@ export class AccountService {
       this.accountCache$ = this.fetch().pipe(
         tap((account: Account) => {
           this.authenticate(account);
-
-          // After retrieve the account info, the language will be changed to
-          // the user's preferred language configured in the account setting
-          // unless user have choosed other language in the current session
           if (!this.stateStorageService.getLocale()) {
             this.translateService.use(account.langKey);
           }
@@ -85,8 +82,6 @@ export class AccountService {
   }
 
   private navigateToStoredUrl(): void {
-    // previousState can be set in the authExpiredInterceptor and in the userRouteAccessService
-    // if login is successful, go to stored previousState and clear previousState
     const previousUrl = this.stateStorageService.getUrl();
     if (previousUrl) {
       this.stateStorageService.clearUrl();
