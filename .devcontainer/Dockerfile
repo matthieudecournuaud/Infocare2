@@ -1,8 +1,6 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.209.6/containers/java/.devcontainer/base.Dockerfile
-
 # [Choice] Java version (use -bullseye variants on local arm64/Apple Silicon): 17, 17-bullseye, 17-buster
 ARG VARIANT="17"
-FROM mcr.microsoft.com/vscode/devcontainers/java:0-${VARIANT}
+FROM mcr.microsoft.com/vscode/devcontainers/java:0-${VARIANT}-bullseye
 
 # [Option] Install Maven
 ARG INSTALL_MAVEN="false"
