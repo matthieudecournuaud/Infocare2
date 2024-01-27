@@ -63,18 +63,21 @@
               </div>
             }
           </dd>
+          <dt><span jhiTranslate="infocare2App.material.ticket">Ticket</span></dt>
+          <dd>
+            @if (material.ticket) {
+              <div>
+                <a [routerLink]="['/ticket', material.ticket.id, 'view']">{{ material.ticket.id }}</a>
+              </div>
+            }
+          </dd>
         </dl>
 
         <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
           <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
         </button>
 
-        <button
-          type="button"
-          *jhiHasAnyAuthority="['ROLE_ADMIN', 'ROLE_USER']"
-          [routerLink]="['/material', material.id, 'edit']"
-          class="btn btn-primary"
-        >
+        <button type="button" [routerLink]="['/material', material.id, 'edit']" class="btn btn-primary">
           <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
         </button>
       </div>

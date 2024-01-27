@@ -157,7 +157,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       },
       options: {
         responsive: true,
-        aspectRatio: 2.2,
+        aspectRatio: 2.5,
         cutout: '85%',
         plugins: {
           legend: {

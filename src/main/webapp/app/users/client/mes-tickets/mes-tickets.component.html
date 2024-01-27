@@ -148,11 +148,9 @@
               <td>{{ ticket.resolution }}</td>
               <td>{{ ticket.attachments }}</td>
               <td>
-                @if (ticket.material) {
-                  <div>
-                    <a [routerLink]="['/material', ticket.material.id, 'view']">{{ ticket.material.id }}</a>
-                  </div>
-                }
+                <div *ngFor="let material of ticket.materials">
+                  <a [routerLink]="['/material', material.id, 'view']">{{ material.id }}</a>
+                </div>
               </td>
               <td>
                 @if (ticket.category) {

@@ -29,6 +29,7 @@ type MaterialFormGroupContent = {
   note: FormControl<IMaterial['note']>;
   serialNumber: FormControl<IMaterial['serialNumber']>;
   company: FormControl<IMaterial['company']>;
+  ticket: FormControl<IMaterial['ticket']>;
 };
 
 export type MaterialFormGroup = FormGroup<MaterialFormGroupContent>;
@@ -71,6 +72,7 @@ export class MaterialFormService {
       }),
       serialNumber: new FormControl(materialRawValue.serialNumber),
       company: new FormControl(materialRawValue.company),
+      ticket: new FormControl(materialRawValue.ticket),
     });
   }
 

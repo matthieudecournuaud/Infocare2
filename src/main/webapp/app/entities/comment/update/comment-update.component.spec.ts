@@ -50,10 +50,10 @@ describe('Comment Management Update Component', () => {
   describe('ngOnInit', () => {
     it('Should call Ticket query and add missing value', () => {
       const comment: IComment = { id: 456 };
-      const ticket: ITicket = { id: 24716 };
+      const ticket: ITicket = { id: 931 };
       comment.ticket = ticket;
 
-      const ticketCollection: ITicket[] = [{ id: 25260 }];
+      const ticketCollection: ITicket[] = [{ id: 17195 }];
       jest.spyOn(ticketService, 'query').mockReturnValue(of(new HttpResponse({ body: ticketCollection })));
       const additionalTickets = [ticket];
       const expectedCollection: ITicket[] = [...additionalTickets, ...ticketCollection];
@@ -72,7 +72,7 @@ describe('Comment Management Update Component', () => {
 
     it('Should update editForm', () => {
       const comment: IComment = { id: 456 };
-      const ticket: ITicket = { id: 12866 };
+      const ticket: ITicket = { id: 6328 };
       comment.ticket = ticket;
 
       activatedRoute.data = of({ comment });

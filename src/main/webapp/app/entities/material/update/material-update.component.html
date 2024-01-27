@@ -205,8 +205,25 @@
             [compareWith]="compareCompany"
           >
             <option [ngValue]="null"></option>
-            @for (companyOption of companiesCollection; track $index) {
+            @for (companyOption of companiesSharedCollection; track $index) {
               <option [ngValue]="companyOption">{{ companyOption.id }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" jhiTranslate="infocare2App.material.ticket" for="field_ticket">Ticket</label>
+          <select
+            class="form-control"
+            id="field_ticket"
+            data-cy="ticket"
+            name="ticket"
+            formControlName="ticket"
+            [compareWith]="compareTicket"
+          >
+            <option [ngValue]="null"></option>
+            @for (ticketOption of ticketsSharedCollection; track $index) {
+              <option [ngValue]="ticketOption">{{ ticketOption.id }}</option>
             }
           </select>
         </div>

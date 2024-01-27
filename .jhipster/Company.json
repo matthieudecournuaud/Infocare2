@@ -20,10 +20,10 @@
     },
     {
       "fieldName": "siret",
-      "fieldType": "Long",
-      "fieldValidateRules": ["required", "min", "max"],
-      "fieldValidateRulesMax": "14",
-      "fieldValidateRulesMin": "14"
+      "fieldType": "String",
+      "fieldValidateRules": ["required", "minlength", "maxlength"],
+      "fieldValidateRulesMaxlength": "14",
+      "fieldValidateRulesMinlength": "14"
     },
     {
       "fieldName": "address",
@@ -75,7 +75,7 @@
       "otherEntityRelationshipName": "company",
       "relationshipName": "material",
       "relationshipSide": "right",
-      "relationshipType": "one-to-one"
+      "relationshipType": "one-to-many"
     }
   ],
   "searchEngine": "no"

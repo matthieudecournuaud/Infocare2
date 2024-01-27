@@ -5,6 +5,8 @@ import static com.backend.infocare.domain.MaterialTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.backend.infocare.web.rest.TestUtil;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class CompanyTest {
@@ -28,12 +30,20 @@ class CompanyTest {
         Company company = getCompanyRandomSampleGenerator();
         Material materialBack = getMaterialRandomSampleGenerator();
 
-        company.setMaterial(materialBack);
-        assertThat(company.getMaterial()).isEqualTo(materialBack);
+        company.addMaterial(materialBack);
+        assertThat(company.getMaterials()).containsOnly(materialBack);
         assertThat(materialBack.getCompany()).isEqualTo(company);
 
-        company.material(null);
-        assertThat(company.getMaterial()).isNull();
+        company.removeMaterial(materialBack);
+        assertThat(company.getMaterials()).doesNotContain(materialBack);
+        assertThat(materialBack.getCompany()).isNull();
+
+        company.materials(new HashSet<>(Set.of(materialBack)));
+        assertThat(company.getMaterials()).containsOnly(materialBack);
+        assertThat(materialBack.getCompany()).isEqualTo(company);
+
+        company.setMaterials(new HashSet<>());
+        assertThat(company.getMaterials()).doesNotContain(materialBack);
         assertThat(materialBack.getCompany()).isNull();
     }
 }

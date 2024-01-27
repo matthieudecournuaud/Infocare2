@@ -61,10 +61,10 @@ public class Ticket implements Serializable {
     @Column(name = "attachments", length = 5000)
     private String attachments;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "ticket")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "company", "ticket" }, allowSetters = true)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(unique = true)
-    private Material material;
+    private Set<Material> materials = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "ticket")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -222,16 +222,34 @@ public class Ticket implements Serializable {
         this.attachments = attachments;
     }
 
-    public Material getMaterial() {
-        return this.material;
+    public Set<Material> getMaterials() {
+        return this.materials;
     }
 
-    public void setMaterial(Material material) {
-        this.material = material;
+    public void setMaterials(Set<Material> materials) {
+        if (this.materials != null) {
+            this.materials.forEach(i -> i.setTicket(null));
+        }
+        if (materials != null) {
+            materials.forEach(i -> i.setTicket(this));
+        }
+        this.materials = materials;
     }
 
-    public Ticket material(Material material) {
-        this.setMaterial(material);
+    public Ticket materials(Set<Material> materials) {
+        this.setMaterials(materials);
+        return this;
+    }
+
+    public Ticket addMaterial(Material material) {
+        this.materials.add(material);
+        material.setTicket(this);
+        return this;
+    }
+
+    public Ticket removeMaterial(Material material) {
+        this.materials.remove(material);
+        material.setTicket(null);
         return this;
     }
 

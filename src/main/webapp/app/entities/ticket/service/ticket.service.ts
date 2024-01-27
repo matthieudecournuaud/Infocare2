@@ -66,6 +66,13 @@ export class TicketService {
       .pipe(map(res => this.convertResponseFromServer(res)));
   }
 
+  query(req?: any): Observable<EntityArrayResponseType> {
+    const options = createRequestOption(req);
+    return this.http
+      .get<RestTicket[]>(this.resourceUrl, { params: options, observe: 'response' })
+      .pipe(map(res => this.convertResponseArrayFromServer(res)));
+  }
+
   queryRecent(): Observable<EntityArrayResponseType> {
     return this.http
       .get<ITicket[]>(`${this.resourceUrl}/recent`, { observe: 'response' })
@@ -78,13 +85,6 @@ export class TicketService {
 
   getTicketsCountByPriorityForUser(username: string): Observable<HttpResponse<unknown[]>> {
     return this.http.get<unknown[]>(`${this.resourceUrl}/user/${username}/tickets-by-priority`, { observe: 'response' });
-  }
-
-  query(req?: any): Observable<EntityArrayResponseType> {
-    const options = createRequestOption(req);
-    return this.http
-      .get<RestTicket[]>(this.resourceUrl, { params: options, observe: 'response' })
-      .pipe(map(res => this.convertResponseArrayFromServer(res)));
   }
 
   delete(id: number): Observable<HttpResponse<{}>> {

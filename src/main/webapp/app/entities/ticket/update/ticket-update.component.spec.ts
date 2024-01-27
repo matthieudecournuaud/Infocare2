@@ -6,8 +6,6 @@ import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of, Subject, from } from 'rxjs';
 
-import { IMaterial } from 'app/entities/material/material.model';
-import { MaterialService } from 'app/entities/material/service/material.service';
 import { ICategory } from 'app/entities/category/category.model';
 import { CategoryService } from 'app/entities/category/service/category.service';
 import { IStatus } from 'app/entities/status/status.model';
@@ -26,7 +24,6 @@ describe('Ticket Management Update Component', () => {
   let activatedRoute: ActivatedRoute;
   let ticketFormService: TicketFormService;
   let ticketService: TicketService;
-  let materialService: MaterialService;
   let categoryService: CategoryService;
   let statusService: StatusService;
   let priorityService: PriorityService;
@@ -51,7 +48,6 @@ describe('Ticket Management Update Component', () => {
     activatedRoute = TestBed.inject(ActivatedRoute);
     ticketFormService = TestBed.inject(TicketFormService);
     ticketService = TestBed.inject(TicketService);
-    materialService = TestBed.inject(MaterialService);
     categoryService = TestBed.inject(CategoryService);
     statusService = TestBed.inject(StatusService);
     priorityService = TestBed.inject(PriorityService);
@@ -60,24 +56,6 @@ describe('Ticket Management Update Component', () => {
   });
 
   describe('ngOnInit', () => {
-    it('Should call material query and add missing value', () => {
-      const ticket: ITicket = { id: 456 };
-      const material: IMaterial = { id: 19577 };
-      ticket.material = material;
-
-      const materialCollection: IMaterial[] = [{ id: 12916 }];
-      jest.spyOn(materialService, 'query').mockReturnValue(of(new HttpResponse({ body: materialCollection })));
-      const expectedCollection: IMaterial[] = [material, ...materialCollection];
-      jest.spyOn(materialService, 'addMaterialToCollectionIfMissing').mockReturnValue(expectedCollection);
-
-      activatedRoute.data = of({ ticket });
-      comp.ngOnInit();
-
-      expect(materialService.query).toHaveBeenCalled();
-      expect(materialService.addMaterialToCollectionIfMissing).toHaveBeenCalledWith(materialCollection, material);
-      expect(comp.materialsCollection).toEqual(expectedCollection);
-    });
-
     it('Should call Category query and add missing value', () => {
       const ticket: ITicket = { id: 456 };
       const category: ICategory = { id: 3789 };
@@ -146,8 +124,6 @@ describe('Ticket Management Update Component', () => {
 
     it('Should update editForm', () => {
       const ticket: ITicket = { id: 456 };
-      const material: IMaterial = { id: 24346 };
-      ticket.material = material;
       const category: ICategory = { id: 9009 };
       ticket.category = category;
       const status: IStatus = { id: 16842 };
@@ -158,7 +134,6 @@ describe('Ticket Management Update Component', () => {
       activatedRoute.data = of({ ticket });
       comp.ngOnInit();
 
-      expect(comp.materialsCollection).toContain(material);
       expect(comp.categoriesSharedCollection).toContain(category);
       expect(comp.statusesSharedCollection).toContain(status);
       expect(comp.prioritiesSharedCollection).toContain(priority);
@@ -235,16 +210,6 @@ describe('Ticket Management Update Component', () => {
   });
 
   describe('Compare relationships', () => {
-    describe('compareMaterial', () => {
-      it('Should forward to materialService', () => {
-        const entity = { id: 123 };
-        const entity2 = { id: 456 };
-        jest.spyOn(materialService, 'compareMaterial');
-        comp.compareMaterial(entity, entity2);
-        expect(materialService.compareMaterial).toHaveBeenCalledWith(entity, entity2);
-      });
-    });
-
     describe('compareCategory', () => {
       it('Should forward to categoryService', () => {
         const entity = { id: 123 };

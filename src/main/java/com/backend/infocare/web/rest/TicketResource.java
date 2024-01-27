@@ -1,5 +1,6 @@
 package com.backend.infocare.web.rest;
 
+import com.backend.infocare.domain.Material;
 import com.backend.infocare.domain.Ticket;
 import com.backend.infocare.repository.CategoryRepository;
 import com.backend.infocare.repository.MaterialRepository;
@@ -12,9 +13,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,8 +84,18 @@ public class TicketResource {
     }
 
     private Ticket enrichTicketMaterial(Ticket ticket) {
-        if (ticket != null && ticket.getMaterial() != null && ticket.getMaterial().getId() != null) {
-            ticket.setMaterial(materialRepository.findById(ticket.getMaterial().getId()).orElseThrow());
+        if (ticket != null && ticket.getMaterials() != null) {
+            Set<Material> materials = ticket.getMaterials();
+            Set<Material> enrichedMaterials = new HashSet<>();
+
+            for (Material material : materials) {
+                if (material.getId() != null) {
+                    Material enrichedMaterial = materialRepository.findById(material.getId()).orElseThrow();
+                    enrichedMaterials.add(enrichedMaterial);
+                }
+            }
+
+            ticket.setMaterials(enrichedMaterials);
         }
         return ticket;
     }

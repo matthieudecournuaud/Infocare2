@@ -53,7 +53,7 @@ public class Intervention implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(
-        value = { "material", "comments", "interventions", "category", "status", "priority", "applicationUsers" },
+        value = { "materials", "comments", "interventions", "category", "status", "priority", "applicationUsers" },
         allowSetters = true
     )
     private Ticket ticket;

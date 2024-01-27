@@ -20,7 +20,7 @@
             <column name="phone" type="varchar(15)">
                 <constraints nullable="false" />
             </column>
-            <column name="siret" type="bigint">
+            <column name="siret" type="varchar(14)">
                 <constraints nullable="false" />
             </column>
             <column name="address" type="varchar(50)">
@@ -67,7 +67,7 @@
             <column name="id" type="numeric"/>
             <column name="name" type="string"/>
             <column name="phone" type="string"/>
-            <column name="siret" type="numeric"/>
+            <column name="siret" type="string"/>
             <column name="address" type="string"/>
             <column name="email" type="string"/>
             <column name="contact_person" type="string"/>

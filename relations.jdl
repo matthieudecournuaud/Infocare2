@@ -63,13 +63,13 @@ entity Material {
     note String maxlength(500)
     serialNumber Long
 }
-relationship OneToOne {
+relationship OneToMany {
     Ticket{material} to Material{ticket}
 }
 entity Company {
     name String required maxlength(50)
     phone String required minlength(10) maxlength(15)
-    siret Long required min(14) max(14)
+    siret String required minlength(14) maxlength(14)
     address String required maxlength(50)
     email String maxlength(100)
     contactPerson String maxlength(100)
@@ -78,7 +78,7 @@ entity Company {
     size String maxlength(50)   
     notes String maxlength(500)
 }
-relationship OneToOne {
+relationship ManyToOne {
     Material{company} to Company{material}
 }
 entity Comment {

@@ -35,8 +35,8 @@ class CompanyResourceIT {
     private static final String DEFAULT_PHONE = "AAAAAAAAAA";
     private static final String UPDATED_PHONE = "BBBBBBBBBB";
 
-    private static final Long DEFAULT_SIRET = 14L;
-    private static final Long UPDATED_SIRET = 15L;
+    private static final String DEFAULT_SIRET = "AAAAAAAAAAAAAA";
+    private static final String UPDATED_SIRET = "BBBBBBBBBBBBBB";
 
     private static final String DEFAULT_ADDRESS = "AAAAAAAAAA";
     private static final String UPDATED_ADDRESS = "BBBBBBBBBB";
@@ -248,7 +248,7 @@ class CompanyResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(company.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].phone").value(hasItem(DEFAULT_PHONE)))
-            .andExpect(jsonPath("$.[*].siret").value(hasItem(DEFAULT_SIRET.intValue())))
+            .andExpect(jsonPath("$.[*].siret").value(hasItem(DEFAULT_SIRET)))
             .andExpect(jsonPath("$.[*].address").value(hasItem(DEFAULT_ADDRESS)))
             .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL)))
             .andExpect(jsonPath("$.[*].contactPerson").value(hasItem(DEFAULT_CONTACT_PERSON)))
@@ -272,7 +272,7 @@ class CompanyResourceIT {
             .andExpect(jsonPath("$.id").value(company.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
             .andExpect(jsonPath("$.phone").value(DEFAULT_PHONE))
-            .andExpect(jsonPath("$.siret").value(DEFAULT_SIRET.intValue()))
+            .andExpect(jsonPath("$.siret").value(DEFAULT_SIRET))
             .andExpect(jsonPath("$.address").value(DEFAULT_ADDRESS))
             .andExpect(jsonPath("$.email").value(DEFAULT_EMAIL))
             .andExpect(jsonPath("$.contactPerson").value(DEFAULT_CONTACT_PERSON))

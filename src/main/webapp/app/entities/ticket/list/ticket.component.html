@@ -105,12 +105,6 @@
                 <fa-icon class="p-1" icon="sort"></fa-icon>
               </div>
             </th>
-            <th scope="col" jhiSortBy="material.id">
-              <div class="d-flex">
-                <span jhiTranslate="infocare2App.ticket.material">Material</span>
-                <fa-icon class="p-1" icon="sort"></fa-icon>
-              </div>
-            </th>
             <th scope="col" jhiSortBy="category.id">
               <div class="d-flex">
                 <span jhiTranslate="infocare2App.ticket.category">Category</span>
@@ -147,13 +141,6 @@
               <td>{{ ticket.impact }}</td>
               <td>{{ ticket.resolution }}</td>
               <td>{{ ticket.attachments }}</td>
-              <td>
-                @if (ticket.material) {
-                  <div>
-                    <a [routerLink]="['/material', ticket.material.id, 'view']">{{ ticket.material.id }}</a>
-                  </div>
-                }
-              </td>
               <td>
                 @if (ticket.category) {
                   <div>

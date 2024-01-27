@@ -43,10 +43,8 @@ class MaterialTest {
 
         material.setTicket(ticketBack);
         assertThat(material.getTicket()).isEqualTo(ticketBack);
-        assertThat(ticketBack.getMaterial()).isEqualTo(material);
 
         material.ticket(null);
         assertThat(material.getTicket()).isNull();
-        assertThat(ticketBack.getMaterial()).isNull();
     }
 }

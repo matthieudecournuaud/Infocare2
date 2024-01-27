@@ -63,6 +63,8 @@ public class CacheConfiguration {
             createCache(cm, com.backend.infocare.domain.Comment.class.getName());
             createCache(cm, com.backend.infocare.domain.Intervention.class.getName());
             createCache(cm, com.backend.infocare.domain.Procedure.class.getName());
+            createCache(cm, com.backend.infocare.domain.Ticket.class.getName() + ".materials");
+            createCache(cm, com.backend.infocare.domain.Company.class.getName() + ".materials");
             // jhipster-needle-ehcache-add-entry
         };
     }

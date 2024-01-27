@@ -60,7 +60,7 @@
       "otherEntityRelationshipName": "ticket",
       "relationshipName": "material",
       "relationshipSide": "left",
-      "relationshipType": "one-to-one"
+      "relationshipType": "one-to-many"
     },
     {
       "otherEntityName": "comment",

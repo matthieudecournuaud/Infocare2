@@ -18,7 +18,7 @@ export interface ITicket {
   impact?: string | null;
   resolution?: string | null;
   attachments?: string | null;
-  material?: IMaterial | null;
+  materials?: IMaterial[] | null;
   comments?: IComment[] | null;
   interventions?: IIntervention[] | null;
   category?: ICategory | null;

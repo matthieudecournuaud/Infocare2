@@ -62,16 +62,15 @@ public class Material implements Serializable {
     @Column(name = "serial_number")
     private Long serialNumber;
 
-    @JsonIgnoreProperties(value = { "material" }, allowSetters = true)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "materials" }, allowSetters = true)
     private Company company;
 
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(
-        value = { "material", "comments", "interventions", "category", "status", "priority", "applicationUsers" },
+        value = { "materials", "comments", "interventions", "category", "status", "priority", "applicationUsers" },
         allowSetters = true
     )
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "material")
     private Ticket ticket;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
@@ -237,12 +236,6 @@ public class Material implements Serializable {
     }
 
     public void setTicket(Ticket ticket) {
-        if (this.ticket != null) {
-            this.ticket.setMaterial(null);
-        }
-        if (ticket != null) {
-            ticket.setMaterial(this);
-        }
         this.ticket = ticket;
     }
 

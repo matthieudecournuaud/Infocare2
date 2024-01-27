@@ -36,11 +36,21 @@ class TicketTest {
         Ticket ticket = getTicketRandomSampleGenerator();
         Material materialBack = getMaterialRandomSampleGenerator();
 
-        ticket.setMaterial(materialBack);
-        assertThat(ticket.getMaterial()).isEqualTo(materialBack);
+        ticket.addMaterial(materialBack);
+        assertThat(ticket.getMaterials()).containsOnly(materialBack);
+        assertThat(materialBack.getTicket()).isEqualTo(ticket);
 
-        ticket.material(null);
-        assertThat(ticket.getMaterial()).isNull();
+        ticket.removeMaterial(materialBack);
+        assertThat(ticket.getMaterials()).doesNotContain(materialBack);
+        assertThat(materialBack.getTicket()).isNull();
+
+        ticket.materials(new HashSet<>(Set.of(materialBack)));
+        assertThat(ticket.getMaterials()).containsOnly(materialBack);
+        assertThat(materialBack.getTicket()).isEqualTo(ticket);
+
+        ticket.setMaterials(new HashSet<>());
+        assertThat(ticket.getMaterials()).doesNotContain(materialBack);
+        assertThat(materialBack.getTicket()).isNull();
     }
 
     @Test

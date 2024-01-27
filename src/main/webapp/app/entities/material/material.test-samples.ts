@@ -3,39 +3,39 @@ import dayjs from 'dayjs/esm';
 import { IMaterial, NewMaterial } from './material.model';
 
 export const sampleWithRequiredData: IMaterial = {
-  id: 26509,
-  name: 'brusque commis de cuisine',
-  type: 'coupable',
+  id: 19577,
+  name: 'étrangler repentir',
+  type: 'd’autant que parce que',
 };
 
 export const sampleWithPartialData: IMaterial = {
-  id: 15846,
-  name: 'nonobstant fonctionnaire charitable',
-  type: 'incognito',
-  warrantyEndDate: dayjs('2024-01-21'),
-  model: 'timide considérable étant donné que',
-  statusMaterial: 'rattraper aventurer au prix de',
-  note: 'malgré cot cot fermer',
-  serialNumber: 13148,
+  id: 9136,
+  name: 'administration pin-pon',
+  type: 'encourager rectorat pacifique',
+  purchaseDate: dayjs('2024-01-21'),
+  manufacturer: 'à peine jusqu’à ce que',
+  model: 'dessous',
+  statusMaterial: 'tchou tchouu maigre plouf',
+  note: 'puisque',
 };
 
 export const sampleWithFullData: IMaterial = {
-  id: 26224,
-  name: 'derrière retracer ronron',
-  type: 'déboucher encore',
-  purchaseDate: dayjs('2024-01-21'),
-  warrantyEndDate: dayjs('2024-01-21'),
-  manufacturer: 'prout',
-  model: "timide vouh d'après",
-  statusMaterial: 'trop accrocher au-dedans de',
+  id: 2747,
+  name: 'absolument',
+  type: 'administration déranger alentour',
+  purchaseDate: dayjs('2024-01-22'),
+  warrantyEndDate: dayjs('2024-01-22'),
+  manufacturer: 'encore délectable soit',
+  model: 'maintenant hier',
+  statusMaterial: 'sympathique ferme sans',
   lastMaintenanceDate: dayjs('2024-01-22'),
-  note: 'interpréter',
-  serialNumber: 11264,
+  note: 'antagoniste alors que au moyen de',
+  serialNumber: 14925,
 };
 
 export const sampleWithNewData: NewMaterial = {
-  name: 'glouglou',
-  type: 'hypocrite',
+  name: 'glouglou simple',
+  type: 'déjà',
   id: null,
 };
 

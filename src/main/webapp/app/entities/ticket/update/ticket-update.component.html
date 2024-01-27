@@ -190,23 +190,6 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.ticket.material" for="field_material">Material</label>
-          <select
-            class="form-control"
-            id="field_material"
-            data-cy="material"
-            name="material"
-            formControlName="material"
-            [compareWith]="compareMaterial"
-          >
-            <option [ngValue]="null"></option>
-            @for (materialOption of materialsCollection; track $index) {
-              <option [ngValue]="materialOption">{{ materialOption.id }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="mb-3">
           <label class="form-label" jhiTranslate="infocare2App.ticket.category" for="field_category">Category</label>
           <select
             class="form-control"

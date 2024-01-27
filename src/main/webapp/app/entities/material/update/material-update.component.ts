@@ -9,8 +9,10 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { ICompany } from 'app/entities/company/company.model';
 import { CompanyService } from 'app/entities/company/service/company.service';
-import { IMaterial } from '../material.model';
+import { ITicket } from 'app/entities/ticket/ticket.model';
+import { TicketService } from 'app/entities/ticket/service/ticket.service';
 import { MaterialService } from '../service/material.service';
+import { IMaterial } from '../material.model';
 import { MaterialFormService, MaterialFormGroup } from './material-form.service';
 
 @Component({
@@ -23,7 +25,8 @@ export class MaterialUpdateComponent implements OnInit {
   isSaving = false;
   material: IMaterial | null = null;
 
-  companiesCollection: ICompany[] = [];
+  companiesSharedCollection: ICompany[] = [];
+  ticketsSharedCollection: ITicket[] = [];
 
   editForm: MaterialFormGroup = this.materialFormService.createMaterialFormGroup();
 
@@ -31,10 +34,13 @@ export class MaterialUpdateComponent implements OnInit {
     protected materialService: MaterialService,
     protected materialFormService: MaterialFormService,
     protected companyService: CompanyService,
+    protected ticketService: TicketService,
     protected activatedRoute: ActivatedRoute,
   ) {}
 
   compareCompany = (o1: ICompany | null, o2: ICompany | null): boolean => this.companyService.compareCompany(o1, o2);
+
+  compareTicket = (o1: ITicket | null, o2: ITicket | null): boolean => this.ticketService.compareTicket(o1, o2);
 
   ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ material }) => {
@@ -84,16 +90,29 @@ export class MaterialUpdateComponent implements OnInit {
     this.material = material;
     this.materialFormService.resetForm(this.editForm, material);
 
-    this.companiesCollection = this.companyService.addCompanyToCollectionIfMissing<ICompany>(this.companiesCollection, material.company);
+    this.companiesSharedCollection = this.companyService.addCompanyToCollectionIfMissing<ICompany>(
+      this.companiesSharedCollection,
+      material.company,
+    );
+    this.ticketsSharedCollection = this.ticketService.addTicketToCollectionIfMissing<ITicket>(
+      this.ticketsSharedCollection,
+      material.ticket,
+    );
   }
 
   protected loadRelationshipsOptions(): void {
     this.companyService
-      .query({ filter: 'material-is-null' })
+      .query()
       .pipe(map((res: HttpResponse<ICompany[]>) => res.body ?? []))
       .pipe(
         map((companies: ICompany[]) => this.companyService.addCompanyToCollectionIfMissing<ICompany>(companies, this.material?.company)),
       )
-      .subscribe((companies: ICompany[]) => (this.companiesCollection = companies));
+      .subscribe((companies: ICompany[]) => (this.companiesSharedCollection = companies));
+
+    this.ticketService
+      .query()
+      .pipe(map((res: HttpResponse<ITicket[]>) => res.body ?? []))
+      .pipe(map((tickets: ITicket[]) => this.ticketService.addTicketToCollectionIfMissing<ITicket>(tickets, this.material?.ticket)))
+      .subscribe((tickets: ITicket[]) => (this.ticketsSharedCollection = tickets));
   }
 }

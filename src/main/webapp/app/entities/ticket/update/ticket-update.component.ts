@@ -7,8 +7,6 @@ import { finalize, map } from 'rxjs/operators';
 import SharedModule from 'app/shared/shared.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { IMaterial } from 'app/entities/material/material.model';
-import { MaterialService } from 'app/entities/material/service/material.service';
 import { ICategory } from 'app/entities/category/category.model';
 import { CategoryService } from 'app/entities/category/service/category.service';
 import { IStatus } from 'app/entities/status/status.model';
@@ -29,7 +27,6 @@ export class TicketUpdateComponent implements OnInit {
   isSaving = false;
   ticket: ITicket | null = null;
 
-  materialsCollection: IMaterial[] = [];
   categoriesSharedCollection: ICategory[] = [];
   statusesSharedCollection: IStatus[] = [];
   prioritiesSharedCollection: IPriority[] = [];
@@ -39,14 +36,11 @@ export class TicketUpdateComponent implements OnInit {
   constructor(
     protected ticketService: TicketService,
     protected ticketFormService: TicketFormService,
-    protected materialService: MaterialService,
     protected categoryService: CategoryService,
     protected statusService: StatusService,
     protected priorityService: PriorityService,
     protected activatedRoute: ActivatedRoute,
   ) {}
-
-  compareMaterial = (o1: IMaterial | null, o2: IMaterial | null): boolean => this.materialService.compareMaterial(o1, o2);
 
   compareCategory = (o1: ICategory | null, o2: ICategory | null): boolean => this.categoryService.compareCategory(o1, o2);
 
@@ -102,7 +96,6 @@ export class TicketUpdateComponent implements OnInit {
     this.ticket = ticket;
     this.ticketFormService.resetForm(this.editForm, ticket);
 
-    this.materialsCollection = this.materialService.addMaterialToCollectionIfMissing<IMaterial>(this.materialsCollection, ticket.material);
     this.categoriesSharedCollection = this.categoryService.addCategoryToCollectionIfMissing<ICategory>(
       this.categoriesSharedCollection,
       ticket.category,
@@ -118,14 +111,6 @@ export class TicketUpdateComponent implements OnInit {
   }
 
   protected loadRelationshipsOptions(): void {
-    this.materialService
-      .query({ filter: 'ticket-is-null' })
-      .pipe(map((res: HttpResponse<IMaterial[]>) => res.body ?? []))
-      .pipe(
-        map((materials: IMaterial[]) => this.materialService.addMaterialToCollectionIfMissing<IMaterial>(materials, this.ticket?.material)),
-      )
-      .subscribe((materials: IMaterial[]) => (this.materialsCollection = materials));
-
     this.categoryService
       .query()
       .pipe(map((res: HttpResponse<ICategory[]>) => res.body ?? []))

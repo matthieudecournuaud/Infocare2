@@ -53,9 +53,9 @@
           </dd>
           <dt><span jhiTranslate="infocare2App.ticket.material">Material</span></dt>
           <dd>
-            @if (ticket.material) {
-              <div>
-                <a [routerLink]="['/material', ticket.material.id, 'view']">{{ ticket.material.name }}</a>
+            @if (ticket.materials) {
+              <div *ngFor="let material of ticket.materials">
+                <a [routerLink]="['/material', material.id, 'view']">{{ material.id }}</a>
               </div>
             }
           </dd>

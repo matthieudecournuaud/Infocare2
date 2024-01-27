@@ -65,14 +65,14 @@
       "otherEntityRelationshipName": "material",
       "relationshipName": "company",
       "relationshipSide": "left",
-      "relationshipType": "one-to-one"
+      "relationshipType": "many-to-one"
     },
     {
       "otherEntityName": "ticket",
       "otherEntityRelationshipName": "material",
       "relationshipName": "ticket",
       "relationshipSide": "right",
-      "relationshipType": "one-to-one"
+      "relationshipType": "many-to-one"
     }
   ],
   "searchEngine": "no"

@@ -54,7 +54,7 @@ export class CompanyFormService {
         validators: [Validators.required, Validators.minLength(10), Validators.maxLength(15)],
       }),
       siret: new FormControl(companyRawValue.siret, {
-        validators: [Validators.required, Validators.min(14), Validators.max(14)],
+        validators: [Validators.required, Validators.minLength(14), Validators.maxLength(14)],
       }),
       address: new FormControl(companyRawValue.address, {
         validators: [Validators.required, Validators.maxLength(50)],

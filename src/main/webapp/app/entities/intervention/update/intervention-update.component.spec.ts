@@ -72,10 +72,10 @@ describe('Intervention Management Update Component', () => {
 
     it('Should call Ticket query and add missing value', () => {
       const intervention: IIntervention = { id: 456 };
-      const ticket: ITicket = { id: 931 };
+      const ticket: ITicket = { id: 601 };
       intervention.ticket = ticket;
 
-      const ticketCollection: ITicket[] = [{ id: 17195 }];
+      const ticketCollection: ITicket[] = [{ id: 18390 }];
       jest.spyOn(ticketService, 'query').mockReturnValue(of(new HttpResponse({ body: ticketCollection })));
       const additionalTickets = [ticket];
       const expectedCollection: ITicket[] = [...additionalTickets, ...ticketCollection];
@@ -96,7 +96,7 @@ describe('Intervention Management Update Component', () => {
       const intervention: IIntervention = { id: 456 };
       const procedure: IProcedure = { id: 32189 };
       intervention.procedure = procedure;
-      const ticket: ITicket = { id: 6328 };
+      const ticket: ITicket = { id: 30241 };
       intervention.ticket = ticket;
 
       activatedRoute.data = of({ intervention });

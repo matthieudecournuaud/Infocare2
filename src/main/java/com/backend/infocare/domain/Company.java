@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -34,10 +36,9 @@ public class Company implements Serializable {
     private String phone;
 
     @NotNull
-    @Min(value = 14L)
-    @Max(value = 14L)
-    @Column(name = "siret", nullable = false)
-    private Long siret;
+    @Size(min = 14, max = 14)
+    @Column(name = "siret", length = 14, nullable = false)
+    private String siret;
 
     @NotNull
     @Size(max = 50)
@@ -68,9 +69,10 @@ public class Company implements Serializable {
     @Column(name = "notes", length = 500)
     private String notes;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "company")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "company", "ticket" }, allowSetters = true)
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "company")
-    private Material material;
+    private Set<Material> materials = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -113,16 +115,16 @@ public class Company implements Serializable {
         this.phone = phone;
     }
 
-    public Long getSiret() {
+    public String getSiret() {
         return this.siret;
     }
 
-    public Company siret(Long siret) {
+    public Company siret(String siret) {
         this.setSiret(siret);
         return this;
     }
 
-    public void setSiret(Long siret) {
+    public void setSiret(String siret) {
         this.siret = siret;
     }
 
@@ -217,22 +219,34 @@ public class Company implements Serializable {
         this.notes = notes;
     }
 
-    public Material getMaterial() {
-        return this.material;
+    public Set<Material> getMaterials() {
+        return this.materials;
     }
 
-    public void setMaterial(Material material) {
-        if (this.material != null) {
-            this.material.setCompany(null);
+    public void setMaterials(Set<Material> materials) {
+        if (this.materials != null) {
+            this.materials.forEach(i -> i.setCompany(null));
         }
-        if (material != null) {
-            material.setCompany(this);
+        if (materials != null) {
+            materials.forEach(i -> i.setCompany(this));
         }
-        this.material = material;
+        this.materials = materials;
     }
 
-    public Company material(Material material) {
-        this.setMaterial(material);
+    public Company materials(Set<Material> materials) {
+        this.setMaterials(materials);
+        return this;
+    }
+
+    public Company addMaterial(Material material) {
+        this.materials.add(material);
+        material.setCompany(this);
+        return this;
+    }
+
+    public Company removeMaterial(Material material) {
+        this.materials.remove(material);
+        material.setCompany(null);
         return this;
     }
 
@@ -262,7 +276,7 @@ public class Company implements Serializable {
             "id=" + getId() +
             ", name='" + getName() + "'" +
             ", phone='" + getPhone() + "'" +
-            ", siret=" + getSiret() +
+            ", siret='" + getSiret() + "'" +
             ", address='" + getAddress() + "'" +
             ", email='" + getEmail() + "'" +
             ", contactPerson='" + getContactPerson() + "'" +

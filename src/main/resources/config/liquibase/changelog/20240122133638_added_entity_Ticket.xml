@@ -41,9 +41,6 @@
             <column name="attachments" type="varchar(5000)">
                 <constraints nullable="true" />
             </column>
-            <column name="material_id" type="bigint">
-                <constraints nullable="true" unique="true" uniqueConstraintName="ux_ticket__material_id" />
-            </column>
             <column name="category_id" type="bigint">
                 <constraints nullable="true" />
             </column>

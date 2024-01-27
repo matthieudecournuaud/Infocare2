@@ -52,7 +52,7 @@ public class ApplicationUser implements Serializable {
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(
-        value = { "material", "comments", "interventions", "category", "status", "priority", "applicationUsers" },
+        value = { "materials", "comments", "interventions", "category", "status", "priority", "applicationUsers" },
         allowSetters = true
     )
     private Set<Ticket> tickets = new HashSet<>();
