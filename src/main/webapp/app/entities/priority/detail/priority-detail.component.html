@@ -11,11 +11,7 @@
         <jhi-alert></jhi-alert>
 
         <dl class="row-md jh-entity-details">
-          <dt><span jhiTranslate="global.field.id">ID</span></dt>
-          <dd>
-            <span>{{ priority.id }}</span>
-          </dd>
-          <dt><span jhiTranslate="infocare2App.priority.name">Name</span></dt>
+          <dt><span jhiTranslate="infocare2App.priority.name">Nom de la priorité: </span></dt>
           <dd>
             <span>{{ priority.name }}</span>
           </dd>
@@ -33,7 +29,12 @@
           <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
         </button>
 
-        <button type="button" [routerLink]="['/priority', priority.id, 'edit']" class="btn btn-primary">
+        <button
+          type="button"
+          [routerLink]="['/priority', priority.id, 'edit']"
+          class="btn btn-primary"
+          *jhiHasAnyAuthority="'ROLE_ADMIN,ROLE_USER'"
+        >
           <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
         </button>
       </div>
