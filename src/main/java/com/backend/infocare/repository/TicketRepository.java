@@ -18,5 +18,9 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     @Query("SELECT count(t) FROM Ticket t JOIN t.applicationUsers u WHERE u.id = :userId")
     Long countByApplicationUsers_UserId(@Param("userId") Long userId);
 
+    @Modifying
+    @Query(value = "CALL PurgeOldTickets();", nativeQuery = true)
+    void purgeOldTickets();
+
     List<Ticket> findTop4ByApplicationUsers_UserIdOrderByCreatedAtDesc(Long applicationUserId);
 }

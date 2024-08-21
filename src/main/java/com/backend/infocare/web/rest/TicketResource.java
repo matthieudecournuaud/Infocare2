@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -334,5 +335,13 @@ public class TicketResource {
         } else {
             return ResponseEntity.ok(ticketsCountByPriority);
         }
+    }
+
+    @PostMapping("/tickets/purge-old")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Transactional
+    public ResponseEntity<Void> purgeOldTickets() {
+        ticketRepository.purgeOldTickets();
+        return ResponseEntity.ok().build();
     }
 }
