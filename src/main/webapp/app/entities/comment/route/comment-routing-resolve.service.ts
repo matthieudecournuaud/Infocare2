@@ -7,7 +7,7 @@ import { mergeMap } from 'rxjs/operators';
 import { IComment } from '../comment.model';
 import { CommentService } from '../service/comment.service';
 
-export const commentResolve = (route: ActivatedRouteSnapshot): Observable<null | IComment> => {
+const commentResolve = (route: ActivatedRouteSnapshot): Observable<null | IComment> => {
   const id = route.params['id'];
   if (id) {
     return inject(CommentService)

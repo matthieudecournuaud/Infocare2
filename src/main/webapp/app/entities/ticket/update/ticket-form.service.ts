@@ -27,9 +27,11 @@ type TicketFormGroupContent = {
   impact: FormControl<ITicket['impact']>;
   resolution: FormControl<ITicket['resolution']>;
   attachments: FormControl<ITicket['attachments']>;
+  applicationUser: FormControl<ITicket['applicationUser']>;
   category: FormControl<ITicket['category']>;
   status: FormControl<ITicket['status']>;
   priority: FormControl<ITicket['priority']>;
+  material: FormControl<ITicket['material']>;
 };
 
 export type TicketFormGroup = FormGroup<TicketFormGroupContent>;
@@ -70,9 +72,11 @@ export class TicketFormService {
       attachments: new FormControl(ticketRawValue.attachments, {
         validators: [Validators.maxLength(5000)],
       }),
+      applicationUser: new FormControl(ticketRawValue.applicationUser),
       category: new FormControl(ticketRawValue.category),
       status: new FormControl(ticketRawValue.status),
       priority: new FormControl(ticketRawValue.priority),
+      material: new FormControl(ticketRawValue.material),
     });
   }
 

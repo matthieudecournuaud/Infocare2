@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center">
   <div class="col-8">
-    @if (category) {
+    @if (category()) {
       <div>
         <h2 data-cy="categoryDetailsHeading"><span jhiTranslate="infocare2App.category.detail.title">Category</span></h2>
 
@@ -11,17 +11,21 @@
         <jhi-alert></jhi-alert>
 
         <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ category()!.id }}</span>
+          </dd>
           <dt><span jhiTranslate="infocare2App.category.name">Name</span></dt>
           <dd>
-            <span>{{ category.name }}</span>
+            <span>{{ category()!.name }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.category.description">Description</span></dt>
           <dd>
-            <span>{{ category.description }}</span>
+            <span>{{ category()!.description }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.category.icon">Icon</span></dt>
           <dd>
-            <span>{{ category.icon }}</span>
+            <span>{{ category()!.icon }}</span>
           </dd>
         </dl>
 
@@ -29,7 +33,7 @@
           <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
         </button>
 
-        <button type="button" [routerLink]="['/category', category.id, 'edit']" class="btn btn-primary" *jhiHasAnyAuthority="'ROLE_ADMIN'">
+        <button type="button" [routerLink]="['/category', category()!.id, 'edit']" class="btn btn-primary">
           <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
         </button>
       </div>

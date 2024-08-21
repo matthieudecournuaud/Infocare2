@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -14,12 +14,10 @@ export type EntityArrayResponseType = HttpResponse<ICategory[]>;
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
-  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/categories');
+  protected http = inject(HttpClient);
+  protected applicationConfigService = inject(ApplicationConfigService);
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/categories');
 
   create(category: NewCategory): Observable<EntityResponseType> {
     return this.http.post<ICategory>(this.resourceUrl, category, { observe: 'response' });
@@ -60,7 +58,7 @@ export class CategoryService {
   ): Type[] {
     const categories: Type[] = categoriesToCheck.filter(isPresent);
     if (categories.length > 0) {
-      const categoryCollectionIdentifiers = categoryCollection.map(categoryItem => this.getCategoryIdentifier(categoryItem)!);
+      const categoryCollectionIdentifiers = categoryCollection.map(categoryItem => this.getCategoryIdentifier(categoryItem));
       const categoriesToAdd = categories.filter(categoryItem => {
         const categoryIdentifier = this.getCategoryIdentifier(categoryItem);
         if (categoryCollectionIdentifiers.includes(categoryIdentifier)) {

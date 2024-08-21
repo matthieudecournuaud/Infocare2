@@ -1,9 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpResponse } from '@angular/common/http';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClient, HttpResponse } from '@angular/common/http';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
 import { of, Subject, from } from 'rxjs';
 
 import { IProcedure } from 'app/entities/procedure/procedure.model';
@@ -27,8 +25,9 @@ describe('Intervention Management Update Component', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), InterventionUpdateComponent],
+      imports: [InterventionUpdateComponent],
       providers: [
+        provideHttpClient(),
         FormBuilder,
         {
           provide: ActivatedRoute,
@@ -72,10 +71,10 @@ describe('Intervention Management Update Component', () => {
 
     it('Should call Ticket query and add missing value', () => {
       const intervention: IIntervention = { id: 456 };
-      const ticket: ITicket = { id: 601 };
+      const ticket: ITicket = { id: 24716 };
       intervention.ticket = ticket;
 
-      const ticketCollection: ITicket[] = [{ id: 18390 }];
+      const ticketCollection: ITicket[] = [{ id: 25260 }];
       jest.spyOn(ticketService, 'query').mockReturnValue(of(new HttpResponse({ body: ticketCollection })));
       const additionalTickets = [ticket];
       const expectedCollection: ITicket[] = [...additionalTickets, ...ticketCollection];
@@ -96,7 +95,7 @@ describe('Intervention Management Update Component', () => {
       const intervention: IIntervention = { id: 456 };
       const procedure: IProcedure = { id: 32189 };
       intervention.procedure = procedure;
-      const ticket: ITicket = { id: 30241 };
+      const ticket: ITicket = { id: 12866 };
       intervention.ticket = ticket;
 
       activatedRoute.data = of({ intervention });

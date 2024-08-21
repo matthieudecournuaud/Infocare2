@@ -1,5 +1,7 @@
 package com.backend.infocare.web.rest;
 
+import static com.backend.infocare.domain.CommentAsserts.*;
+import static com.backend.infocare.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -8,12 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.backend.infocare.IntegrationTest;
 import com.backend.infocare.domain.Comment;
 import com.backend.infocare.repository.CommentRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +65,9 @@ class CommentResourceIT {
     private static AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
     @Autowired
+    private ObjectMapper om;
+
+    @Autowired
     private CommentRepository commentRepository;
 
     @Autowired
@@ -71,6 +77,8 @@ class CommentResourceIT {
     private MockMvc restCommentMockMvc;
 
     private Comment comment;
+
+    private Comment insertedComment;
 
     /**
      * Create an entity for this test.
@@ -115,27 +123,34 @@ class CommentResourceIT {
         comment = createEntity(em);
     }
 
+    @AfterEach
+    public void cleanup() {
+        if (insertedComment != null) {
+            commentRepository.delete(insertedComment);
+            insertedComment = null;
+        }
+    }
+
     @Test
     @Transactional
     void createComment() throws Exception {
-        int databaseSizeBeforeCreate = commentRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Comment
-        restCommentMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(comment)))
-            .andExpect(status().isCreated());
+        var returnedComment = om.readValue(
+            restCommentMockMvc
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(comment)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            Comment.class
+        );
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeCreate + 1);
-        Comment testComment = commentList.get(commentList.size() - 1);
-        assertThat(testComment.getTitle()).isEqualTo(DEFAULT_TITLE);
-        assertThat(testComment.getType()).isEqualTo(DEFAULT_TYPE);
-        assertThat(testComment.getVisibility()).isEqualTo(DEFAULT_VISIBILITY);
-        assertThat(testComment.getDescription()).isEqualTo(DEFAULT_DESCRIPTION);
-        assertThat(testComment.getEditedBy()).isEqualTo(DEFAULT_EDITED_BY);
-        assertThat(testComment.getEditedAt()).isEqualTo(DEFAULT_EDITED_AT);
-        assertThat(testComment.getAttachments()).isEqualTo(DEFAULT_ATTACHMENTS);
-        assertThat(testComment.getResponseToCommentId()).isEqualTo(DEFAULT_RESPONSE_TO_COMMENT_ID);
+        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        assertCommentUpdatableFieldsEquals(returnedComment, getPersistedComment(returnedComment));
+
+        insertedComment = returnedComment;
     }
 
     @Test
@@ -144,74 +159,70 @@ class CommentResourceIT {
         // Create the Comment with an existing ID
         comment.setId(1L);
 
-        int databaseSizeBeforeCreate = commentRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restCommentMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(comment)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(comment)))
             .andExpect(status().isBadRequest());
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeCreate);
+        assertSameRepositoryCount(databaseSizeBeforeCreate);
     }
 
     @Test
     @Transactional
     void checkTitleIsRequired() throws Exception {
-        int databaseSizeBeforeTest = commentRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         comment.setTitle(null);
 
         // Create the Comment, which fails.
 
         restCommentMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(comment)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(comment)))
             .andExpect(status().isBadRequest());
 
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void checkEditedByIsRequired() throws Exception {
-        int databaseSizeBeforeTest = commentRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         comment.setEditedBy(null);
 
         // Create the Comment, which fails.
 
         restCommentMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(comment)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(comment)))
             .andExpect(status().isBadRequest());
 
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void checkEditedAtIsRequired() throws Exception {
-        int databaseSizeBeforeTest = commentRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         comment.setEditedAt(null);
 
         // Create the Comment, which fails.
 
         restCommentMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(comment)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(comment)))
             .andExpect(status().isBadRequest());
 
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void getAllComments() throws Exception {
         // Initialize the database
-        commentRepository.saveAndFlush(comment);
+        insertedComment = commentRepository.saveAndFlush(comment);
 
         // Get all the commentList
         restCommentMockMvc
@@ -233,7 +244,7 @@ class CommentResourceIT {
     @Transactional
     void getComment() throws Exception {
         // Initialize the database
-        commentRepository.saveAndFlush(comment);
+        insertedComment = commentRepository.saveAndFlush(comment);
 
         // Get the comment
         restCommentMockMvc
@@ -262,9 +273,9 @@ class CommentResourceIT {
     @Transactional
     void putExistingComment() throws Exception {
         // Initialize the database
-        commentRepository.saveAndFlush(comment);
+        insertedComment = commentRepository.saveAndFlush(comment);
 
-        int databaseSizeBeforeUpdate = commentRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the comment
         Comment updatedComment = commentRepository.findById(comment.getId()).orElseThrow();
@@ -284,48 +295,34 @@ class CommentResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, updatedComment.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(updatedComment))
+                    .content(om.writeValueAsBytes(updatedComment))
             )
             .andExpect(status().isOk());
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeUpdate);
-        Comment testComment = commentList.get(commentList.size() - 1);
-        assertThat(testComment.getTitle()).isEqualTo(UPDATED_TITLE);
-        assertThat(testComment.getType()).isEqualTo(UPDATED_TYPE);
-        assertThat(testComment.getVisibility()).isEqualTo(UPDATED_VISIBILITY);
-        assertThat(testComment.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testComment.getEditedBy()).isEqualTo(UPDATED_EDITED_BY);
-        assertThat(testComment.getEditedAt()).isEqualTo(UPDATED_EDITED_AT);
-        assertThat(testComment.getAttachments()).isEqualTo(UPDATED_ATTACHMENTS);
-        assertThat(testComment.getResponseToCommentId()).isEqualTo(UPDATED_RESPONSE_TO_COMMENT_ID);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPersistedCommentToMatchAllProperties(updatedComment);
     }
 
     @Test
     @Transactional
     void putNonExistingComment() throws Exception {
-        int databaseSizeBeforeUpdate = commentRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         comment.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCommentMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, comment.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(comment))
-            )
+            .perform(put(ENTITY_API_URL_ID, comment.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(comment)))
             .andExpect(status().isBadRequest());
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithIdMismatchComment() throws Exception {
-        int databaseSizeBeforeUpdate = commentRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         comment.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -333,38 +330,36 @@ class CommentResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(comment))
+                    .content(om.writeValueAsBytes(comment))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithMissingIdPathParamComment() throws Exception {
-        int databaseSizeBeforeUpdate = commentRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         comment.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCommentMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(comment)))
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(comment)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void partialUpdateCommentWithPatch() throws Exception {
         // Initialize the database
-        commentRepository.saveAndFlush(comment);
+        insertedComment = commentRepository.saveAndFlush(comment);
 
-        int databaseSizeBeforeUpdate = commentRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the comment using partial update
         Comment partialUpdatedComment = new Comment();
@@ -382,31 +377,23 @@ class CommentResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedComment.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedComment))
+                    .content(om.writeValueAsBytes(partialUpdatedComment))
             )
             .andExpect(status().isOk());
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeUpdate);
-        Comment testComment = commentList.get(commentList.size() - 1);
-        assertThat(testComment.getTitle()).isEqualTo(DEFAULT_TITLE);
-        assertThat(testComment.getType()).isEqualTo(UPDATED_TYPE);
-        assertThat(testComment.getVisibility()).isEqualTo(UPDATED_VISIBILITY);
-        assertThat(testComment.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testComment.getEditedBy()).isEqualTo(UPDATED_EDITED_BY);
-        assertThat(testComment.getEditedAt()).isEqualTo(UPDATED_EDITED_AT);
-        assertThat(testComment.getAttachments()).isEqualTo(DEFAULT_ATTACHMENTS);
-        assertThat(testComment.getResponseToCommentId()).isEqualTo(UPDATED_RESPONSE_TO_COMMENT_ID);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertCommentUpdatableFieldsEquals(createUpdateProxyForBean(partialUpdatedComment, comment), getPersistedComment(comment));
     }
 
     @Test
     @Transactional
     void fullUpdateCommentWithPatch() throws Exception {
         // Initialize the database
-        commentRepository.saveAndFlush(comment);
+        insertedComment = commentRepository.saveAndFlush(comment);
 
-        int databaseSizeBeforeUpdate = commentRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the comment using partial update
         Comment partialUpdatedComment = new Comment();
@@ -426,48 +413,37 @@ class CommentResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedComment.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedComment))
+                    .content(om.writeValueAsBytes(partialUpdatedComment))
             )
             .andExpect(status().isOk());
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeUpdate);
-        Comment testComment = commentList.get(commentList.size() - 1);
-        assertThat(testComment.getTitle()).isEqualTo(UPDATED_TITLE);
-        assertThat(testComment.getType()).isEqualTo(UPDATED_TYPE);
-        assertThat(testComment.getVisibility()).isEqualTo(UPDATED_VISIBILITY);
-        assertThat(testComment.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testComment.getEditedBy()).isEqualTo(UPDATED_EDITED_BY);
-        assertThat(testComment.getEditedAt()).isEqualTo(UPDATED_EDITED_AT);
-        assertThat(testComment.getAttachments()).isEqualTo(UPDATED_ATTACHMENTS);
-        assertThat(testComment.getResponseToCommentId()).isEqualTo(UPDATED_RESPONSE_TO_COMMENT_ID);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertCommentUpdatableFieldsEquals(partialUpdatedComment, getPersistedComment(partialUpdatedComment));
     }
 
     @Test
     @Transactional
     void patchNonExistingComment() throws Exception {
-        int databaseSizeBeforeUpdate = commentRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         comment.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCommentMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, comment.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(comment))
+                patch(ENTITY_API_URL_ID, comment.getId()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(comment))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithIdMismatchComment() throws Exception {
-        int databaseSizeBeforeUpdate = commentRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         comment.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -475,38 +451,36 @@ class CommentResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(comment))
+                    .content(om.writeValueAsBytes(comment))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithMissingIdPathParamComment() throws Exception {
-        int databaseSizeBeforeUpdate = commentRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         comment.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCommentMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(comment)))
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(comment)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Comment in the database
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void deleteComment() throws Exception {
         // Initialize the database
-        commentRepository.saveAndFlush(comment);
+        insertedComment = commentRepository.saveAndFlush(comment);
 
-        int databaseSizeBeforeDelete = commentRepository.findAll().size();
+        long databaseSizeBeforeDelete = getRepositoryCount();
 
         // Delete the comment
         restCommentMockMvc
@@ -514,7 +488,34 @@ class CommentResourceIT {
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
-        List<Comment> commentList = commentRepository.findAll();
-        assertThat(commentList).hasSize(databaseSizeBeforeDelete - 1);
+        assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
+    }
+
+    protected long getRepositoryCount() {
+        return commentRepository.count();
+    }
+
+    protected void assertIncrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore + 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertDecrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore - 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertSameRepositoryCount(long countBefore) {
+        assertThat(countBefore).isEqualTo(getRepositoryCount());
+    }
+
+    protected Comment getPersistedComment(Comment comment) {
+        return commentRepository.findById(comment.getId()).orElseThrow();
+    }
+
+    protected void assertPersistedCommentToMatchAllProperties(Comment expectedComment) {
+        assertCommentAllPropertiesEquals(expectedComment, getPersistedComment(expectedComment));
+    }
+
+    protected void assertPersistedCommentToMatchUpdatableProperties(Comment expectedComment) {
+        assertCommentAllUpdatablePropertiesEquals(expectedComment, getPersistedComment(expectedComment));
     }
 }

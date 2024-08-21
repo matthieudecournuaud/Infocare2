@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +28,7 @@ import tech.jhipster.web.util.ResponseUtil;
 @Transactional
 public class CompanyResource {
 
-    private final Logger log = LoggerFactory.getLogger(CompanyResource.class);
+    private static final Logger log = LoggerFactory.getLogger(CompanyResource.class);
 
     private static final String ENTITY_NAME = "company";
 
@@ -53,11 +54,10 @@ public class CompanyResource {
         if (company.getId() != null) {
             throw new BadRequestAlertException("A new company cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Company result = companyRepository.save(company);
-        return ResponseEntity
-            .created(new URI("/api/companies/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        company = companyRepository.save(company);
+        return ResponseEntity.created(new URI("/api/companies/" + company.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, company.getId().toString()))
+            .body(company);
     }
 
     /**
@@ -87,11 +87,10 @@ public class CompanyResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Company result = companyRepository.save(company);
-        return ResponseEntity
-            .ok()
+        company = companyRepository.save(company);
+        return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, company.getId().toString()))
-            .body(result);
+            .body(company);
     }
 
     /**
@@ -169,10 +168,17 @@ public class CompanyResource {
     /**
      * {@code GET  /companies} : get all the companies.
      *
+     * @param filter the filter of the request.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of companies in body.
      */
     @GetMapping("")
-    public List<Company> getAllCompanies() {
+    public List<Company> getAllCompanies(@RequestParam(name = "filter", required = false) String filter) {
+        if ("material-is-null".equals(filter)) {
+            log.debug("REST request to get all Companys where material is null");
+            return StreamSupport.stream(companyRepository.findAll().spliterator(), false)
+                .filter(company -> company.getMaterial() == null)
+                .toList();
+        }
         log.debug("REST request to get all Companies");
         return companyRepository.findAll();
     }
@@ -200,8 +206,7 @@ public class CompanyResource {
     public ResponseEntity<Void> deleteCompany(@PathVariable("id") Long id) {
         log.debug("REST request to delete Company : {}", id);
         companyRepository.deleteById(id);
-        return ResponseEntity
-            .noContent()
+        return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }

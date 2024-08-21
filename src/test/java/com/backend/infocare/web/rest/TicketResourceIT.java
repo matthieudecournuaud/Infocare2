@@ -1,5 +1,7 @@
 package com.backend.infocare.web.rest;
 
+import static com.backend.infocare.domain.TicketAsserts.*;
+import static com.backend.infocare.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -8,12 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.backend.infocare.IntegrationTest;
 import com.backend.infocare.domain.Ticket;
 import com.backend.infocare.repository.TicketRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +68,9 @@ class TicketResourceIT {
     private static AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
     @Autowired
+    private ObjectMapper om;
+
+    @Autowired
     private TicketRepository ticketRepository;
 
     @Autowired
@@ -74,6 +80,8 @@ class TicketResourceIT {
     private MockMvc restTicketMockMvc;
 
     private Ticket ticket;
+
+    private Ticket insertedTicket;
 
     /**
      * Create an entity for this test.
@@ -120,28 +128,34 @@ class TicketResourceIT {
         ticket = createEntity(em);
     }
 
+    @AfterEach
+    public void cleanup() {
+        if (insertedTicket != null) {
+            ticketRepository.delete(insertedTicket);
+            insertedTicket = null;
+        }
+    }
+
     @Test
     @Transactional
     void createTicket() throws Exception {
-        int databaseSizeBeforeCreate = ticketRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Ticket
-        restTicketMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(ticket)))
-            .andExpect(status().isCreated());
+        var returnedTicket = om.readValue(
+            restTicketMockMvc
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(ticket)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            Ticket.class
+        );
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeCreate + 1);
-        Ticket testTicket = ticketList.get(ticketList.size() - 1);
-        assertThat(testTicket.getTitle()).isEqualTo(DEFAULT_TITLE);
-        assertThat(testTicket.getDescription()).isEqualTo(DEFAULT_DESCRIPTION);
-        assertThat(testTicket.getCreatedAt()).isEqualTo(DEFAULT_CREATED_AT);
-        assertThat(testTicket.getResolutionDate()).isEqualTo(DEFAULT_RESOLUTION_DATE);
-        assertThat(testTicket.getClosedAt()).isEqualTo(DEFAULT_CLOSED_AT);
-        assertThat(testTicket.getLimitDate()).isEqualTo(DEFAULT_LIMIT_DATE);
-        assertThat(testTicket.getImpact()).isEqualTo(DEFAULT_IMPACT);
-        assertThat(testTicket.getResolution()).isEqualTo(DEFAULT_RESOLUTION);
-        assertThat(testTicket.getAttachments()).isEqualTo(DEFAULT_ATTACHMENTS);
+        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        assertTicketUpdatableFieldsEquals(returnedTicket, getPersistedTicket(returnedTicket));
+
+        insertedTicket = returnedTicket;
     }
 
     @Test
@@ -150,74 +164,70 @@ class TicketResourceIT {
         // Create the Ticket with an existing ID
         ticket.setId(1L);
 
-        int databaseSizeBeforeCreate = ticketRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restTicketMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(ticket)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(ticket)))
             .andExpect(status().isBadRequest());
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeCreate);
+        assertSameRepositoryCount(databaseSizeBeforeCreate);
     }
 
     @Test
     @Transactional
     void checkTitleIsRequired() throws Exception {
-        int databaseSizeBeforeTest = ticketRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         ticket.setTitle(null);
 
         // Create the Ticket, which fails.
 
         restTicketMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(ticket)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(ticket)))
             .andExpect(status().isBadRequest());
 
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void checkDescriptionIsRequired() throws Exception {
-        int databaseSizeBeforeTest = ticketRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         ticket.setDescription(null);
 
         // Create the Ticket, which fails.
 
         restTicketMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(ticket)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(ticket)))
             .andExpect(status().isBadRequest());
 
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void checkCreatedAtIsRequired() throws Exception {
-        int databaseSizeBeforeTest = ticketRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         ticket.setCreatedAt(null);
 
         // Create the Ticket, which fails.
 
         restTicketMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(ticket)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(ticket)))
             .andExpect(status().isBadRequest());
 
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void getAllTickets() throws Exception {
         // Initialize the database
-        ticketRepository.saveAndFlush(ticket);
+        insertedTicket = ticketRepository.saveAndFlush(ticket);
 
         // Get all the ticketList
         restTicketMockMvc
@@ -240,7 +250,7 @@ class TicketResourceIT {
     @Transactional
     void getTicket() throws Exception {
         // Initialize the database
-        ticketRepository.saveAndFlush(ticket);
+        insertedTicket = ticketRepository.saveAndFlush(ticket);
 
         // Get the ticket
         restTicketMockMvc
@@ -270,9 +280,9 @@ class TicketResourceIT {
     @Transactional
     void putExistingTicket() throws Exception {
         // Initialize the database
-        ticketRepository.saveAndFlush(ticket);
+        insertedTicket = ticketRepository.saveAndFlush(ticket);
 
-        int databaseSizeBeforeUpdate = ticketRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the ticket
         Ticket updatedTicket = ticketRepository.findById(ticket.getId()).orElseThrow();
@@ -293,49 +303,34 @@ class TicketResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, updatedTicket.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(updatedTicket))
+                    .content(om.writeValueAsBytes(updatedTicket))
             )
             .andExpect(status().isOk());
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeUpdate);
-        Ticket testTicket = ticketList.get(ticketList.size() - 1);
-        assertThat(testTicket.getTitle()).isEqualTo(UPDATED_TITLE);
-        assertThat(testTicket.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testTicket.getCreatedAt()).isEqualTo(UPDATED_CREATED_AT);
-        assertThat(testTicket.getResolutionDate()).isEqualTo(UPDATED_RESOLUTION_DATE);
-        assertThat(testTicket.getClosedAt()).isEqualTo(UPDATED_CLOSED_AT);
-        assertThat(testTicket.getLimitDate()).isEqualTo(UPDATED_LIMIT_DATE);
-        assertThat(testTicket.getImpact()).isEqualTo(UPDATED_IMPACT);
-        assertThat(testTicket.getResolution()).isEqualTo(UPDATED_RESOLUTION);
-        assertThat(testTicket.getAttachments()).isEqualTo(UPDATED_ATTACHMENTS);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPersistedTicketToMatchAllProperties(updatedTicket);
     }
 
     @Test
     @Transactional
     void putNonExistingTicket() throws Exception {
-        int databaseSizeBeforeUpdate = ticketRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         ticket.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restTicketMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, ticket.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(ticket))
-            )
+            .perform(put(ENTITY_API_URL_ID, ticket.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(ticket)))
             .andExpect(status().isBadRequest());
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithIdMismatchTicket() throws Exception {
-        int databaseSizeBeforeUpdate = ticketRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         ticket.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -343,38 +338,36 @@ class TicketResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(ticket))
+                    .content(om.writeValueAsBytes(ticket))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithMissingIdPathParamTicket() throws Exception {
-        int databaseSizeBeforeUpdate = ticketRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         ticket.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restTicketMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(ticket)))
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(ticket)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void partialUpdateTicketWithPatch() throws Exception {
         // Initialize the database
-        ticketRepository.saveAndFlush(ticket);
+        insertedTicket = ticketRepository.saveAndFlush(ticket);
 
-        int databaseSizeBeforeUpdate = ticketRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the ticket using partial update
         Ticket partialUpdatedTicket = new Ticket();
@@ -390,32 +383,23 @@ class TicketResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedTicket.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedTicket))
+                    .content(om.writeValueAsBytes(partialUpdatedTicket))
             )
             .andExpect(status().isOk());
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeUpdate);
-        Ticket testTicket = ticketList.get(ticketList.size() - 1);
-        assertThat(testTicket.getTitle()).isEqualTo(UPDATED_TITLE);
-        assertThat(testTicket.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testTicket.getCreatedAt()).isEqualTo(DEFAULT_CREATED_AT);
-        assertThat(testTicket.getResolutionDate()).isEqualTo(DEFAULT_RESOLUTION_DATE);
-        assertThat(testTicket.getClosedAt()).isEqualTo(DEFAULT_CLOSED_AT);
-        assertThat(testTicket.getLimitDate()).isEqualTo(DEFAULT_LIMIT_DATE);
-        assertThat(testTicket.getImpact()).isEqualTo(DEFAULT_IMPACT);
-        assertThat(testTicket.getResolution()).isEqualTo(UPDATED_RESOLUTION);
-        assertThat(testTicket.getAttachments()).isEqualTo(UPDATED_ATTACHMENTS);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertTicketUpdatableFieldsEquals(createUpdateProxyForBean(partialUpdatedTicket, ticket), getPersistedTicket(ticket));
     }
 
     @Test
     @Transactional
     void fullUpdateTicketWithPatch() throws Exception {
         // Initialize the database
-        ticketRepository.saveAndFlush(ticket);
+        insertedTicket = ticketRepository.saveAndFlush(ticket);
 
-        int databaseSizeBeforeUpdate = ticketRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the ticket using partial update
         Ticket partialUpdatedTicket = new Ticket();
@@ -436,49 +420,37 @@ class TicketResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedTicket.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedTicket))
+                    .content(om.writeValueAsBytes(partialUpdatedTicket))
             )
             .andExpect(status().isOk());
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeUpdate);
-        Ticket testTicket = ticketList.get(ticketList.size() - 1);
-        assertThat(testTicket.getTitle()).isEqualTo(UPDATED_TITLE);
-        assertThat(testTicket.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testTicket.getCreatedAt()).isEqualTo(UPDATED_CREATED_AT);
-        assertThat(testTicket.getResolutionDate()).isEqualTo(UPDATED_RESOLUTION_DATE);
-        assertThat(testTicket.getClosedAt()).isEqualTo(UPDATED_CLOSED_AT);
-        assertThat(testTicket.getLimitDate()).isEqualTo(UPDATED_LIMIT_DATE);
-        assertThat(testTicket.getImpact()).isEqualTo(UPDATED_IMPACT);
-        assertThat(testTicket.getResolution()).isEqualTo(UPDATED_RESOLUTION);
-        assertThat(testTicket.getAttachments()).isEqualTo(UPDATED_ATTACHMENTS);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertTicketUpdatableFieldsEquals(partialUpdatedTicket, getPersistedTicket(partialUpdatedTicket));
     }
 
     @Test
     @Transactional
     void patchNonExistingTicket() throws Exception {
-        int databaseSizeBeforeUpdate = ticketRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         ticket.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restTicketMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, ticket.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(ticket))
+                patch(ENTITY_API_URL_ID, ticket.getId()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(ticket))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithIdMismatchTicket() throws Exception {
-        int databaseSizeBeforeUpdate = ticketRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         ticket.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -486,38 +458,36 @@ class TicketResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(ticket))
+                    .content(om.writeValueAsBytes(ticket))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithMissingIdPathParamTicket() throws Exception {
-        int databaseSizeBeforeUpdate = ticketRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         ticket.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restTicketMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(ticket)))
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(ticket)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Ticket in the database
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void deleteTicket() throws Exception {
         // Initialize the database
-        ticketRepository.saveAndFlush(ticket);
+        insertedTicket = ticketRepository.saveAndFlush(ticket);
 
-        int databaseSizeBeforeDelete = ticketRepository.findAll().size();
+        long databaseSizeBeforeDelete = getRepositoryCount();
 
         // Delete the ticket
         restTicketMockMvc
@@ -525,7 +495,34 @@ class TicketResourceIT {
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
-        List<Ticket> ticketList = ticketRepository.findAll();
-        assertThat(ticketList).hasSize(databaseSizeBeforeDelete - 1);
+        assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
+    }
+
+    protected long getRepositoryCount() {
+        return ticketRepository.count();
+    }
+
+    protected void assertIncrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore + 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertDecrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore - 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertSameRepositoryCount(long countBefore) {
+        assertThat(countBefore).isEqualTo(getRepositoryCount());
+    }
+
+    protected Ticket getPersistedTicket(Ticket ticket) {
+        return ticketRepository.findById(ticket.getId()).orElseThrow();
+    }
+
+    protected void assertPersistedTicketToMatchAllProperties(Ticket expectedTicket) {
+        assertTicketAllPropertiesEquals(expectedTicket, getPersistedTicket(expectedTicket));
+    }
+
+    protected void assertPersistedTicketToMatchUpdatableProperties(Ticket expectedTicket) {
+        assertTicketAllUpdatablePropertiesEquals(expectedTicket, getPersistedTicket(expectedTicket));
     }
 }

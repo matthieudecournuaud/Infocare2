@@ -41,14 +41,20 @@
             <column name="attachments" type="varchar(5000)">
                 <constraints nullable="true" />
             </column>
+            <column name="application_user_id" type="bigint">
+                <constraints nullable="true" unique="true" uniqueConstraintName="ux_ticket__application_user_id" />
+            </column>
             <column name="category_id" type="bigint">
-                <constraints nullable="true" />
+                <constraints nullable="true" unique="true" uniqueConstraintName="ux_ticket__category_id" />
             </column>
             <column name="status_id" type="bigint">
-                <constraints nullable="true" />
+                <constraints nullable="true" unique="true" uniqueConstraintName="ux_ticket__status_id" />
             </column>
             <column name="priority_id" type="bigint">
-                <constraints nullable="true" />
+                <constraints nullable="true" unique="true" uniqueConstraintName="ux_ticket__priority_id" />
+            </column>
+            <column name="material_id" type="bigint">
+                <constraints nullable="true" unique="true" uniqueConstraintName="ux_ticket__material_id" />
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>

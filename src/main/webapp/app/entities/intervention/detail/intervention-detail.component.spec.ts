@@ -1,14 +1,17 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { RouterTestingHarness, RouterTestingModule } from '@angular/router/testing';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 import { InterventionDetailComponent } from './intervention-detail.component';
 
 describe('Intervention Management Detail Component', () => {
+  let comp: InterventionDetailComponent;
+  let fixture: ComponentFixture<InterventionDetailComponent>;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InterventionDetailComponent, RouterTestingModule.withRoutes([], { bindToComponentInputs: true })],
+      imports: [InterventionDetailComponent],
       providers: [
         provideRouter(
           [
@@ -26,13 +29,26 @@ describe('Intervention Management Detail Component', () => {
       .compileComponents();
   });
 
+  beforeEach(() => {
+    fixture = TestBed.createComponent(InterventionDetailComponent);
+    comp = fixture.componentInstance;
+  });
+
   describe('OnInit', () => {
     it('Should load intervention on init', async () => {
       const harness = await RouterTestingHarness.create();
       const instance = await harness.navigateByUrl('/', InterventionDetailComponent);
 
       // THEN
-      expect(instance.intervention).toEqual(expect.objectContaining({ id: 123 }));
+      expect(instance.intervention()).toEqual(expect.objectContaining({ id: 123 }));
+    });
+  });
+
+  describe('PreviousState', () => {
+    it('Should navigate to previous state', () => {
+      jest.spyOn(window.history, 'back');
+      comp.previousState();
+      expect(window.history.back).toHaveBeenCalled();
     });
   });
 });

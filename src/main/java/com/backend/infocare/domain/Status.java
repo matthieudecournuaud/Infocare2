@@ -1,5 +1,6 @@
 package com.backend.infocare.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
@@ -46,6 +47,13 @@ public class Status implements Serializable {
 
     @Column(name = "is_final")
     private Boolean isFinal;
+
+    @JsonIgnoreProperties(
+        value = { "applicationUser", "category", "status", "priority", "material", "comments", "interventions" },
+        allowSetters = true
+    )
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "status")
+    private Ticket ticket;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -138,6 +146,25 @@ public class Status implements Serializable {
 
     public void setIsFinal(Boolean isFinal) {
         this.isFinal = isFinal;
+    }
+
+    public Ticket getTicket() {
+        return this.ticket;
+    }
+
+    public void setTicket(Ticket ticket) {
+        if (this.ticket != null) {
+            this.ticket.setStatus(null);
+        }
+        if (ticket != null) {
+            ticket.setStatus(this);
+        }
+        this.ticket = ticket;
+    }
+
+    public Status ticket(Ticket ticket) {
+        this.setTicket(ticket);
+        return this;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here

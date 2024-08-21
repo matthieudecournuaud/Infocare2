@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -41,21 +39,16 @@ public class ApplicationUser implements Serializable {
     @Column(name = "notes", length = 500)
     private String notes;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
     private User user;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "rel_application_user__ticket",
-        joinColumns = @JoinColumn(name = "application_user_id"),
-        inverseJoinColumns = @JoinColumn(name = "ticket_id")
-    )
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(
-        value = { "materials", "comments", "interventions", "category", "status", "priority", "applicationUsers" },
+        value = { "applicationUser", "category", "status", "priority", "material", "comments", "interventions" },
         allowSetters = true
     )
-    private Set<Ticket> tickets = new HashSet<>();
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "applicationUser")
+    private Ticket ticket;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -137,26 +130,22 @@ public class ApplicationUser implements Serializable {
         return this;
     }
 
-    public Set<Ticket> getTickets() {
-        return this.tickets;
+    public Ticket getTicket() {
+        return this.ticket;
     }
 
-    public void setTickets(Set<Ticket> tickets) {
-        this.tickets = tickets;
+    public void setTicket(Ticket ticket) {
+        if (this.ticket != null) {
+            this.ticket.setApplicationUser(null);
+        }
+        if (ticket != null) {
+            ticket.setApplicationUser(this);
+        }
+        this.ticket = ticket;
     }
 
-    public ApplicationUser tickets(Set<Ticket> tickets) {
-        this.setTickets(tickets);
-        return this;
-    }
-
-    public ApplicationUser addTicket(Ticket ticket) {
-        this.tickets.add(ticket);
-        return this;
-    }
-
-    public ApplicationUser removeTicket(Ticket ticket) {
-        this.tickets.remove(ticket);
+    public ApplicationUser ticket(Ticket ticket) {
+        this.setTicket(ticket);
         return this;
     }
 

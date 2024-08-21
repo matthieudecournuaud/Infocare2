@@ -1,5 +1,7 @@
 package com.backend.infocare.web.rest;
 
+import static com.backend.infocare.domain.StatusAsserts.*;
+import static com.backend.infocare.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -8,10 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.backend.infocare.IntegrationTest;
 import com.backend.infocare.domain.Status;
 import com.backend.infocare.repository.StatusRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +57,9 @@ class StatusResourceIT {
     private static AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
     @Autowired
+    private ObjectMapper om;
+
+    @Autowired
     private StatusRepository statusRepository;
 
     @Autowired
@@ -63,6 +69,8 @@ class StatusResourceIT {
     private MockMvc restStatusMockMvc;
 
     private Status status;
+
+    private Status insertedStatus;
 
     /**
      * Create an entity for this test.
@@ -103,25 +111,34 @@ class StatusResourceIT {
         status = createEntity(em);
     }
 
+    @AfterEach
+    public void cleanup() {
+        if (insertedStatus != null) {
+            statusRepository.delete(insertedStatus);
+            insertedStatus = null;
+        }
+    }
+
     @Test
     @Transactional
     void createStatus() throws Exception {
-        int databaseSizeBeforeCreate = statusRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Status
-        restStatusMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(status)))
-            .andExpect(status().isCreated());
+        var returnedStatus = om.readValue(
+            restStatusMockMvc
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(status)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            Status.class
+        );
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeCreate + 1);
-        Status testStatus = statusList.get(statusList.size() - 1);
-        assertThat(testStatus.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testStatus.getStatusCode()).isEqualTo(DEFAULT_STATUS_CODE);
-        assertThat(testStatus.getDescription()).isEqualTo(DEFAULT_DESCRIPTION);
-        assertThat(testStatus.getColorCode()).isEqualTo(DEFAULT_COLOR_CODE);
-        assertThat(testStatus.getNextPossibleStatus()).isEqualTo(DEFAULT_NEXT_POSSIBLE_STATUS);
-        assertThat(testStatus.getIsFinal()).isEqualTo(DEFAULT_IS_FINAL);
+        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        assertStatusUpdatableFieldsEquals(returnedStatus, getPersistedStatus(returnedStatus));
+
+        insertedStatus = returnedStatus;
     }
 
     @Test
@@ -130,57 +147,54 @@ class StatusResourceIT {
         // Create the Status with an existing ID
         status.setId(1L);
 
-        int databaseSizeBeforeCreate = statusRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restStatusMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(status)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(status)))
             .andExpect(status().isBadRequest());
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeCreate);
+        assertSameRepositoryCount(databaseSizeBeforeCreate);
     }
 
     @Test
     @Transactional
     void checkNameIsRequired() throws Exception {
-        int databaseSizeBeforeTest = statusRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         status.setName(null);
 
         // Create the Status, which fails.
 
         restStatusMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(status)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(status)))
             .andExpect(status().isBadRequest());
 
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void checkStatusCodeIsRequired() throws Exception {
-        int databaseSizeBeforeTest = statusRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         status.setStatusCode(null);
 
         // Create the Status, which fails.
 
         restStatusMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(status)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(status)))
             .andExpect(status().isBadRequest());
 
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void getAllStatuses() throws Exception {
         // Initialize the database
-        statusRepository.saveAndFlush(status);
+        insertedStatus = statusRepository.saveAndFlush(status);
 
         // Get all the statusList
         restStatusMockMvc
@@ -200,7 +214,7 @@ class StatusResourceIT {
     @Transactional
     void getStatus() throws Exception {
         // Initialize the database
-        statusRepository.saveAndFlush(status);
+        insertedStatus = statusRepository.saveAndFlush(status);
 
         // Get the status
         restStatusMockMvc
@@ -227,9 +241,9 @@ class StatusResourceIT {
     @Transactional
     void putExistingStatus() throws Exception {
         // Initialize the database
-        statusRepository.saveAndFlush(status);
+        insertedStatus = statusRepository.saveAndFlush(status);
 
-        int databaseSizeBeforeUpdate = statusRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the status
         Status updatedStatus = statusRepository.findById(status.getId()).orElseThrow();
@@ -247,46 +261,34 @@ class StatusResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, updatedStatus.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(updatedStatus))
+                    .content(om.writeValueAsBytes(updatedStatus))
             )
             .andExpect(status().isOk());
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeUpdate);
-        Status testStatus = statusList.get(statusList.size() - 1);
-        assertThat(testStatus.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testStatus.getStatusCode()).isEqualTo(UPDATED_STATUS_CODE);
-        assertThat(testStatus.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testStatus.getColorCode()).isEqualTo(UPDATED_COLOR_CODE);
-        assertThat(testStatus.getNextPossibleStatus()).isEqualTo(UPDATED_NEXT_POSSIBLE_STATUS);
-        assertThat(testStatus.getIsFinal()).isEqualTo(UPDATED_IS_FINAL);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPersistedStatusToMatchAllProperties(updatedStatus);
     }
 
     @Test
     @Transactional
     void putNonExistingStatus() throws Exception {
-        int databaseSizeBeforeUpdate = statusRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         status.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restStatusMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, status.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(status))
-            )
+            .perform(put(ENTITY_API_URL_ID, status.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(status)))
             .andExpect(status().isBadRequest());
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithIdMismatchStatus() throws Exception {
-        int databaseSizeBeforeUpdate = statusRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         status.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -294,38 +296,36 @@ class StatusResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(status))
+                    .content(om.writeValueAsBytes(status))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithMissingIdPathParamStatus() throws Exception {
-        int databaseSizeBeforeUpdate = statusRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         status.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restStatusMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(status)))
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(status)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void partialUpdateStatusWithPatch() throws Exception {
         // Initialize the database
-        statusRepository.saveAndFlush(status);
+        insertedStatus = statusRepository.saveAndFlush(status);
 
-        int databaseSizeBeforeUpdate = statusRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the status using partial update
         Status partialUpdatedStatus = new Status();
@@ -337,29 +337,23 @@ class StatusResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedStatus.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedStatus))
+                    .content(om.writeValueAsBytes(partialUpdatedStatus))
             )
             .andExpect(status().isOk());
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeUpdate);
-        Status testStatus = statusList.get(statusList.size() - 1);
-        assertThat(testStatus.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testStatus.getStatusCode()).isEqualTo(DEFAULT_STATUS_CODE);
-        assertThat(testStatus.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testStatus.getColorCode()).isEqualTo(DEFAULT_COLOR_CODE);
-        assertThat(testStatus.getNextPossibleStatus()).isEqualTo(DEFAULT_NEXT_POSSIBLE_STATUS);
-        assertThat(testStatus.getIsFinal()).isEqualTo(DEFAULT_IS_FINAL);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertStatusUpdatableFieldsEquals(createUpdateProxyForBean(partialUpdatedStatus, status), getPersistedStatus(status));
     }
 
     @Test
     @Transactional
     void fullUpdateStatusWithPatch() throws Exception {
         // Initialize the database
-        statusRepository.saveAndFlush(status);
+        insertedStatus = statusRepository.saveAndFlush(status);
 
-        int databaseSizeBeforeUpdate = statusRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the status using partial update
         Status partialUpdatedStatus = new Status();
@@ -377,46 +371,37 @@ class StatusResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedStatus.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedStatus))
+                    .content(om.writeValueAsBytes(partialUpdatedStatus))
             )
             .andExpect(status().isOk());
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeUpdate);
-        Status testStatus = statusList.get(statusList.size() - 1);
-        assertThat(testStatus.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testStatus.getStatusCode()).isEqualTo(UPDATED_STATUS_CODE);
-        assertThat(testStatus.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testStatus.getColorCode()).isEqualTo(UPDATED_COLOR_CODE);
-        assertThat(testStatus.getNextPossibleStatus()).isEqualTo(UPDATED_NEXT_POSSIBLE_STATUS);
-        assertThat(testStatus.getIsFinal()).isEqualTo(UPDATED_IS_FINAL);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertStatusUpdatableFieldsEquals(partialUpdatedStatus, getPersistedStatus(partialUpdatedStatus));
     }
 
     @Test
     @Transactional
     void patchNonExistingStatus() throws Exception {
-        int databaseSizeBeforeUpdate = statusRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         status.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restStatusMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, status.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(status))
+                patch(ENTITY_API_URL_ID, status.getId()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(status))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithIdMismatchStatus() throws Exception {
-        int databaseSizeBeforeUpdate = statusRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         status.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -424,38 +409,36 @@ class StatusResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(status))
+                    .content(om.writeValueAsBytes(status))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithMissingIdPathParamStatus() throws Exception {
-        int databaseSizeBeforeUpdate = statusRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         status.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restStatusMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(status)))
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(status)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Status in the database
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void deleteStatus() throws Exception {
         // Initialize the database
-        statusRepository.saveAndFlush(status);
+        insertedStatus = statusRepository.saveAndFlush(status);
 
-        int databaseSizeBeforeDelete = statusRepository.findAll().size();
+        long databaseSizeBeforeDelete = getRepositoryCount();
 
         // Delete the status
         restStatusMockMvc
@@ -463,7 +446,34 @@ class StatusResourceIT {
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
-        List<Status> statusList = statusRepository.findAll();
-        assertThat(statusList).hasSize(databaseSizeBeforeDelete - 1);
+        assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
+    }
+
+    protected long getRepositoryCount() {
+        return statusRepository.count();
+    }
+
+    protected void assertIncrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore + 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertDecrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore - 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertSameRepositoryCount(long countBefore) {
+        assertThat(countBefore).isEqualTo(getRepositoryCount());
+    }
+
+    protected Status getPersistedStatus(Status status) {
+        return statusRepository.findById(status.getId()).orElseThrow();
+    }
+
+    protected void assertPersistedStatusToMatchAllProperties(Status expectedStatus) {
+        assertStatusAllPropertiesEquals(expectedStatus, getPersistedStatus(expectedStatus));
+    }
+
+    protected void assertPersistedStatusToMatchUpdatableProperties(Status expectedStatus) {
+        assertStatusAllUpdatablePropertiesEquals(expectedStatus, getPersistedStatus(expectedStatus));
     }
 }

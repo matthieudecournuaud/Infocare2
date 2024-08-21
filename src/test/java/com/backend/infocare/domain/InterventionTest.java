@@ -25,7 +25,7 @@ class InterventionTest {
     }
 
     @Test
-    void procedureTest() throws Exception {
+    void procedureTest() {
         Intervention intervention = getInterventionRandomSampleGenerator();
         Procedure procedureBack = getProcedureRandomSampleGenerator();
 
@@ -37,7 +37,7 @@ class InterventionTest {
     }
 
     @Test
-    void ticketTest() throws Exception {
+    void ticketTest() {
         Intervention intervention = getInterventionRandomSampleGenerator();
         Ticket ticketBack = getTicketRandomSampleGenerator();
 

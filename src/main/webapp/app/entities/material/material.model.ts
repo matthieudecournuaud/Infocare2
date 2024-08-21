@@ -1,6 +1,5 @@
 import dayjs from 'dayjs/esm';
 import { ICompany } from 'app/entities/company/company.model';
-import { ITicket } from 'app/entities/ticket/ticket.model';
 
 export interface IMaterial {
   id: number;
@@ -15,7 +14,6 @@ export interface IMaterial {
   note?: string | null;
   serialNumber?: number | null;
   company?: ICompany | null;
-  ticket?: ITicket | null;
 }
 
 export type NewMaterial = Omit<IMaterial, 'id'> & { id: null };

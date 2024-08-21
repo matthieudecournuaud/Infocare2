@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -21,13 +21,12 @@ export class CompanyUpdateComponent implements OnInit {
   isSaving = false;
   company: ICompany | null = null;
 
-  editForm: CompanyFormGroup = this.companyFormService.createCompanyFormGroup();
+  protected companyService = inject(CompanyService);
+  protected companyFormService = inject(CompanyFormService);
+  protected activatedRoute = inject(ActivatedRoute);
 
-  constructor(
-    protected companyService: CompanyService,
-    protected companyFormService: CompanyFormService,
-    protected activatedRoute: ActivatedRoute,
-  ) {}
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  editForm: CompanyFormGroup = this.companyFormService.createCompanyFormGroup();
 
   ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ company }) => {

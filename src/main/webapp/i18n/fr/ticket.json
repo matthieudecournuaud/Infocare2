@@ -27,13 +27,13 @@
       "impact": "Impact",
       "resolution": "Resolution",
       "attachments": "Attachments",
-      "material": "Material",
-      "comment": "Comment",
-      "intervention": "Intervention",
+      "applicationUser": "Application User",
       "category": "Category",
       "status": "Status",
       "priority": "Priority",
-      "applicationUser": "Application User"
+      "material": "Material",
+      "comment": "Comment",
+      "intervention": "Intervention"
     }
   }
 }

@@ -7,7 +7,7 @@ import { mergeMap } from 'rxjs/operators';
 import { IProcedure } from '../procedure.model';
 import { ProcedureService } from '../service/procedure.service';
 
-export const procedureResolve = (route: ActivatedRouteSnapshot): Observable<null | IProcedure> => {
+const procedureResolve = (route: ActivatedRouteSnapshot): Observable<null | IProcedure> => {
   const id = route.params['id'];
   if (id) {
     return inject(ProcedureService)

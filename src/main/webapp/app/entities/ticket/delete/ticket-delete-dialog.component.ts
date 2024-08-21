@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -15,10 +15,8 @@ import { TicketService } from '../service/ticket.service';
 export class TicketDeleteDialogComponent {
   ticket?: ITicket;
 
-  constructor(
-    protected ticketService: TicketService,
-    protected activeModal: NgbActiveModal,
-  ) {}
+  protected ticketService = inject(TicketService);
+  protected activeModal = inject(NgbActiveModal);
 
   cancel(): void {
     this.activeModal.dismiss();

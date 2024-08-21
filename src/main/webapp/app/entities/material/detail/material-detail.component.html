@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center">
   <div class="col-8">
-    @if (material) {
+    @if (material()) {
       <div>
         <h2 data-cy="materialDetailsHeading"><span jhiTranslate="infocare2App.material.detail.title">Material</span></h2>
 
@@ -13,61 +13,53 @@
         <dl class="row-md jh-entity-details">
           <dt><span jhiTranslate="global.field.id">ID</span></dt>
           <dd>
-            <span>{{ material.id }}</span>
+            <span>{{ material()!.id }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.name">Name</span></dt>
           <dd>
-            <span>{{ material.name }}</span>
+            <span>{{ material()!.name }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.type">Type</span></dt>
           <dd>
-            <span>{{ material.type }}</span>
+            <span>{{ material()!.type }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.purchaseDate">Purchase Date</span></dt>
           <dd>
-            <span>{{ material.purchaseDate | formatMediumDate }}</span>
+            <span>{{ material()!.purchaseDate | formatMediumDate }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.warrantyEndDate">Warranty End Date</span></dt>
           <dd>
-            <span>{{ material.warrantyEndDate | formatMediumDate }}</span>
+            <span>{{ material()!.warrantyEndDate | formatMediumDate }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.manufacturer">Manufacturer</span></dt>
           <dd>
-            <span>{{ material.manufacturer }}</span>
+            <span>{{ material()!.manufacturer }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.model">Model</span></dt>
           <dd>
-            <span>{{ material.model }}</span>
+            <span>{{ material()!.model }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.statusMaterial">Status Material</span></dt>
           <dd>
-            <span>{{ material.statusMaterial }}</span>
+            <span>{{ material()!.statusMaterial }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.lastMaintenanceDate">Last Maintenance Date</span></dt>
           <dd>
-            <span>{{ material.lastMaintenanceDate | formatMediumDate }}</span>
+            <span>{{ material()!.lastMaintenanceDate | formatMediumDate }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.note">Note</span></dt>
           <dd>
-            <span>{{ material.note }}</span>
+            <span>{{ material()!.note }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.serialNumber">Serial Number</span></dt>
           <dd>
-            <span>{{ material.serialNumber }}</span>
+            <span>{{ material()!.serialNumber }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.material.company">Company</span></dt>
           <dd>
-            @if (material.company) {
+            @if (material()!.company) {
               <div>
-                <a [routerLink]="['/company', material.company.id, 'view']">{{ material.company.id }}</a>
-              </div>
-            }
-          </dd>
-          <dt><span jhiTranslate="infocare2App.material.ticket">Ticket</span></dt>
-          <dd>
-            @if (material.ticket) {
-              <div>
-                <a [routerLink]="['/ticket', material.ticket.id, 'view']">{{ material.ticket.id }}</a>
+                <a [routerLink]="['/company', material()!.company?.id, 'view']">{{ material()!.company?.id }}</a>
               </div>
             }
           </dd>
@@ -77,12 +69,7 @@
           <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
         </button>
 
-        <button
-          type="button"
-          [routerLink]="['/material', material.id, 'edit']"
-          class="btn btn-primary"
-          *jhiHasAnyAuthority="'ROLE_ADMIN,ROLE_USER'"
-        >
+        <button type="button" [routerLink]="['/material', material()!.id, 'edit']" class="btn btn-primary">
           <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
         </button>
       </div>

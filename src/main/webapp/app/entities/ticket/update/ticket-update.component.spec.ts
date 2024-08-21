@@ -1,17 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpResponse } from '@angular/common/http';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClient, HttpResponse } from '@angular/common/http';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
 import { of, Subject, from } from 'rxjs';
 
+import { IApplicationUser } from 'app/entities/application-user/application-user.model';
+import { ApplicationUserService } from 'app/entities/application-user/service/application-user.service';
 import { ICategory } from 'app/entities/category/category.model';
 import { CategoryService } from 'app/entities/category/service/category.service';
 import { IStatus } from 'app/entities/status/status.model';
 import { StatusService } from 'app/entities/status/service/status.service';
 import { IPriority } from 'app/entities/priority/priority.model';
 import { PriorityService } from 'app/entities/priority/service/priority.service';
+import { IMaterial } from 'app/entities/material/material.model';
+import { MaterialService } from 'app/entities/material/service/material.service';
 import { ITicket } from '../ticket.model';
 import { TicketService } from '../service/ticket.service';
 import { TicketFormService } from './ticket-form.service';
@@ -24,14 +26,17 @@ describe('Ticket Management Update Component', () => {
   let activatedRoute: ActivatedRoute;
   let ticketFormService: TicketFormService;
   let ticketService: TicketService;
+  let applicationUserService: ApplicationUserService;
   let categoryService: CategoryService;
   let statusService: StatusService;
   let priorityService: PriorityService;
+  let materialService: MaterialService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), TicketUpdateComponent],
+      imports: [TicketUpdateComponent],
       providers: [
+        provideHttpClient(),
         FormBuilder,
         {
           provide: ActivatedRoute,
@@ -48,95 +53,130 @@ describe('Ticket Management Update Component', () => {
     activatedRoute = TestBed.inject(ActivatedRoute);
     ticketFormService = TestBed.inject(TicketFormService);
     ticketService = TestBed.inject(TicketService);
+    applicationUserService = TestBed.inject(ApplicationUserService);
     categoryService = TestBed.inject(CategoryService);
     statusService = TestBed.inject(StatusService);
     priorityService = TestBed.inject(PriorityService);
+    materialService = TestBed.inject(MaterialService);
 
     comp = fixture.componentInstance;
   });
 
   describe('ngOnInit', () => {
-    it('Should call Category query and add missing value', () => {
+    it('Should call applicationUser query and add missing value', () => {
+      const ticket: ITicket = { id: 456 };
+      const applicationUser: IApplicationUser = { id: 2474 };
+      ticket.applicationUser = applicationUser;
+
+      const applicationUserCollection: IApplicationUser[] = [{ id: 28586 }];
+      jest.spyOn(applicationUserService, 'query').mockReturnValue(of(new HttpResponse({ body: applicationUserCollection })));
+      const expectedCollection: IApplicationUser[] = [applicationUser, ...applicationUserCollection];
+      jest.spyOn(applicationUserService, 'addApplicationUserToCollectionIfMissing').mockReturnValue(expectedCollection);
+
+      activatedRoute.data = of({ ticket });
+      comp.ngOnInit();
+
+      expect(applicationUserService.query).toHaveBeenCalled();
+      expect(applicationUserService.addApplicationUserToCollectionIfMissing).toHaveBeenCalledWith(
+        applicationUserCollection,
+        applicationUser,
+      );
+      expect(comp.applicationUsersCollection).toEqual(expectedCollection);
+    });
+
+    it('Should call category query and add missing value', () => {
       const ticket: ITicket = { id: 456 };
       const category: ICategory = { id: 3789 };
       ticket.category = category;
 
       const categoryCollection: ICategory[] = [{ id: 14535 }];
       jest.spyOn(categoryService, 'query').mockReturnValue(of(new HttpResponse({ body: categoryCollection })));
-      const additionalCategories = [category];
-      const expectedCollection: ICategory[] = [...additionalCategories, ...categoryCollection];
+      const expectedCollection: ICategory[] = [category, ...categoryCollection];
       jest.spyOn(categoryService, 'addCategoryToCollectionIfMissing').mockReturnValue(expectedCollection);
 
       activatedRoute.data = of({ ticket });
       comp.ngOnInit();
 
       expect(categoryService.query).toHaveBeenCalled();
-      expect(categoryService.addCategoryToCollectionIfMissing).toHaveBeenCalledWith(
-        categoryCollection,
-        ...additionalCategories.map(expect.objectContaining),
-      );
-      expect(comp.categoriesSharedCollection).toEqual(expectedCollection);
+      expect(categoryService.addCategoryToCollectionIfMissing).toHaveBeenCalledWith(categoryCollection, category);
+      expect(comp.categoriesCollection).toEqual(expectedCollection);
     });
 
-    it('Should call Status query and add missing value', () => {
+    it('Should call status query and add missing value', () => {
       const ticket: ITicket = { id: 456 };
       const status: IStatus = { id: 30336 };
       ticket.status = status;
 
       const statusCollection: IStatus[] = [{ id: 10817 }];
       jest.spyOn(statusService, 'query').mockReturnValue(of(new HttpResponse({ body: statusCollection })));
-      const additionalStatuses = [status];
-      const expectedCollection: IStatus[] = [...additionalStatuses, ...statusCollection];
+      const expectedCollection: IStatus[] = [status, ...statusCollection];
       jest.spyOn(statusService, 'addStatusToCollectionIfMissing').mockReturnValue(expectedCollection);
 
       activatedRoute.data = of({ ticket });
       comp.ngOnInit();
 
       expect(statusService.query).toHaveBeenCalled();
-      expect(statusService.addStatusToCollectionIfMissing).toHaveBeenCalledWith(
-        statusCollection,
-        ...additionalStatuses.map(expect.objectContaining),
-      );
-      expect(comp.statusesSharedCollection).toEqual(expectedCollection);
+      expect(statusService.addStatusToCollectionIfMissing).toHaveBeenCalledWith(statusCollection, status);
+      expect(comp.statusesCollection).toEqual(expectedCollection);
     });
 
-    it('Should call Priority query and add missing value', () => {
+    it('Should call priority query and add missing value', () => {
       const ticket: ITicket = { id: 456 };
       const priority: IPriority = { id: 6960 };
       ticket.priority = priority;
 
       const priorityCollection: IPriority[] = [{ id: 22933 }];
       jest.spyOn(priorityService, 'query').mockReturnValue(of(new HttpResponse({ body: priorityCollection })));
-      const additionalPriorities = [priority];
-      const expectedCollection: IPriority[] = [...additionalPriorities, ...priorityCollection];
+      const expectedCollection: IPriority[] = [priority, ...priorityCollection];
       jest.spyOn(priorityService, 'addPriorityToCollectionIfMissing').mockReturnValue(expectedCollection);
 
       activatedRoute.data = of({ ticket });
       comp.ngOnInit();
 
       expect(priorityService.query).toHaveBeenCalled();
-      expect(priorityService.addPriorityToCollectionIfMissing).toHaveBeenCalledWith(
-        priorityCollection,
-        ...additionalPriorities.map(expect.objectContaining),
-      );
-      expect(comp.prioritiesSharedCollection).toEqual(expectedCollection);
+      expect(priorityService.addPriorityToCollectionIfMissing).toHaveBeenCalledWith(priorityCollection, priority);
+      expect(comp.prioritiesCollection).toEqual(expectedCollection);
+    });
+
+    it('Should call material query and add missing value', () => {
+      const ticket: ITicket = { id: 456 };
+      const material: IMaterial = { id: 19577 };
+      ticket.material = material;
+
+      const materialCollection: IMaterial[] = [{ id: 12916 }];
+      jest.spyOn(materialService, 'query').mockReturnValue(of(new HttpResponse({ body: materialCollection })));
+      const expectedCollection: IMaterial[] = [material, ...materialCollection];
+      jest.spyOn(materialService, 'addMaterialToCollectionIfMissing').mockReturnValue(expectedCollection);
+
+      activatedRoute.data = of({ ticket });
+      comp.ngOnInit();
+
+      expect(materialService.query).toHaveBeenCalled();
+      expect(materialService.addMaterialToCollectionIfMissing).toHaveBeenCalledWith(materialCollection, material);
+      expect(comp.materialsCollection).toEqual(expectedCollection);
     });
 
     it('Should update editForm', () => {
       const ticket: ITicket = { id: 456 };
+      const applicationUser: IApplicationUser = { id: 8991 };
+      ticket.applicationUser = applicationUser;
       const category: ICategory = { id: 9009 };
       ticket.category = category;
       const status: IStatus = { id: 16842 };
       ticket.status = status;
       const priority: IPriority = { id: 4620 };
       ticket.priority = priority;
+      const material: IMaterial = { id: 24346 };
+      ticket.material = material;
 
       activatedRoute.data = of({ ticket });
       comp.ngOnInit();
 
-      expect(comp.categoriesSharedCollection).toContain(category);
-      expect(comp.statusesSharedCollection).toContain(status);
-      expect(comp.prioritiesSharedCollection).toContain(priority);
+      expect(comp.applicationUsersCollection).toContain(applicationUser);
+      expect(comp.categoriesCollection).toContain(category);
+      expect(comp.statusesCollection).toContain(status);
+      expect(comp.prioritiesCollection).toContain(priority);
+      expect(comp.materialsCollection).toContain(material);
       expect(comp.ticket).toEqual(ticket);
     });
   });
@@ -210,6 +250,16 @@ describe('Ticket Management Update Component', () => {
   });
 
   describe('Compare relationships', () => {
+    describe('compareApplicationUser', () => {
+      it('Should forward to applicationUserService', () => {
+        const entity = { id: 123 };
+        const entity2 = { id: 456 };
+        jest.spyOn(applicationUserService, 'compareApplicationUser');
+        comp.compareApplicationUser(entity, entity2);
+        expect(applicationUserService.compareApplicationUser).toHaveBeenCalledWith(entity, entity2);
+      });
+    });
+
     describe('compareCategory', () => {
       it('Should forward to categoryService', () => {
         const entity = { id: 123 };
@@ -237,6 +287,16 @@ describe('Ticket Management Update Component', () => {
         jest.spyOn(priorityService, 'comparePriority');
         comp.comparePriority(entity, entity2);
         expect(priorityService.comparePriority).toHaveBeenCalledWith(entity, entity2);
+      });
+    });
+
+    describe('compareMaterial', () => {
+      it('Should forward to materialService', () => {
+        const entity = { id: 123 };
+        const entity2 = { id: 456 };
+        jest.spyOn(materialService, 'compareMaterial');
+        comp.compareMaterial(entity, entity2);
+        expect(materialService.compareMaterial).toHaveBeenCalledWith(entity, entity2);
       });
     });
   });

@@ -3,7 +3,6 @@
     "changelogDate": "20240122134338"
   },
   "applications": "*",
-  "entityTableName": "company",
   "fields": [
     {
       "fieldName": "name",
@@ -20,10 +19,10 @@
     },
     {
       "fieldName": "siret",
-      "fieldType": "String",
-      "fieldValidateRules": ["required", "minlength", "maxlength"],
-      "fieldValidateRulesMaxlength": "14",
-      "fieldValidateRulesMinlength": "14"
+      "fieldType": "Long",
+      "fieldValidateRules": ["required", "min", "max"],
+      "fieldValidateRulesMax": "14",
+      "fieldValidateRulesMin": "14"
     },
     {
       "fieldName": "address",
@@ -75,7 +74,7 @@
       "otherEntityRelationshipName": "company",
       "relationshipName": "material",
       "relationshipSide": "right",
-      "relationshipType": "one-to-many"
+      "relationshipType": "one-to-one"
     }
   ],
   "searchEngine": "no"

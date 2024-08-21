@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center">
   <div class="col-8">
-    @if (comment) {
+    @if (comment()) {
       <div>
         <h2 data-cy="commentDetailsHeading"><span jhiTranslate="infocare2App.comment.detail.title">Comment</span></h2>
 
@@ -13,45 +13,45 @@
         <dl class="row-md jh-entity-details">
           <dt><span jhiTranslate="global.field.id">ID</span></dt>
           <dd>
-            <span>{{ comment.id }}</span>
+            <span>{{ comment()!.id }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.comment.title">Title</span></dt>
           <dd>
-            <span>{{ comment.title }}</span>
+            <span>{{ comment()!.title }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.comment.type">Type</span></dt>
           <dd>
-            <span>{{ comment.type }}</span>
+            <span>{{ comment()!.type }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.comment.visibility">Visibility</span></dt>
           <dd>
-            <span>{{ comment.visibility }}</span>
+            <span>{{ comment()!.visibility }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.comment.description">Description</span></dt>
           <dd>
-            <span>{{ comment.description }}</span>
+            <span>{{ comment()!.description }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.comment.editedBy">Edited By</span></dt>
           <dd>
-            <span>{{ comment.editedBy }}</span>
+            <span>{{ comment()!.editedBy }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.comment.editedAt">Edited At</span></dt>
           <dd>
-            <span>{{ comment.editedAt | formatMediumDate }}</span>
+            <span>{{ comment()!.editedAt | formatMediumDate }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.comment.attachments">Attachments</span></dt>
           <dd>
-            <span>{{ comment.attachments }}</span>
+            <span>{{ comment()!.attachments }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.comment.responseToCommentId">Response To Comment Id</span></dt>
           <dd>
-            <span>{{ comment.responseToCommentId }}</span>
+            <span>{{ comment()!.responseToCommentId }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.comment.ticket">Ticket</span></dt>
           <dd>
-            @if (comment.ticket) {
+            @if (comment()!.ticket) {
               <div>
-                <a [routerLink]="['/ticket', comment.ticket.id, 'view']">{{ comment.ticket.id }}</a>
+                <a [routerLink]="['/ticket', comment()!.ticket?.id, 'view']">{{ comment()!.ticket?.id }}</a>
               </div>
             }
           </dd>
@@ -61,7 +61,7 @@
           <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
         </button>
 
-        <button type="button" [routerLink]="['/comment', comment.id, 'edit']" class="btn btn-primary">
+        <button type="button" [routerLink]="['/comment', comment()!.id, 'edit']" class="btn btn-primary">
           <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
         </button>
       </div>

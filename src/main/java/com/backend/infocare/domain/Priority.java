@@ -1,5 +1,6 @@
 package com.backend.infocare.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
@@ -34,6 +35,13 @@ public class Priority implements Serializable {
     @Size(max = 7)
     @Column(name = "color_code", length = 7)
     private String colorCode;
+
+    @JsonIgnoreProperties(
+        value = { "applicationUser", "category", "status", "priority", "material", "comments", "interventions" },
+        allowSetters = true
+    )
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "priority")
+    private Ticket ticket;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -87,6 +95,25 @@ public class Priority implements Serializable {
 
     public void setColorCode(String colorCode) {
         this.colorCode = colorCode;
+    }
+
+    public Ticket getTicket() {
+        return this.ticket;
+    }
+
+    public void setTicket(Ticket ticket) {
+        if (this.ticket != null) {
+            this.ticket.setPriority(null);
+        }
+        if (ticket != null) {
+            ticket.setPriority(this);
+        }
+        this.ticket = ticket;
+    }
+
+    public Priority ticket(Ticket ticket) {
+        this.setTicket(ticket);
+        return this;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here

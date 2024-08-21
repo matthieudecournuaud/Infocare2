@@ -4,7 +4,7 @@
 
     <div class="d-flex justify-content-end">
       <button class="btn btn-info me-2" (click)="load()" [disabled]="isLoading">
-        <fa-icon icon="sync" [spin]="isLoading"></fa-icon>
+        <fa-icon icon="sync" [animation]="isLoading ? 'spin' : undefined"></fa-icon>
         <span jhiTranslate="infocare2App.ticket.home.refreshListLabel">Actualiser la liste</span>
       </button>
 
@@ -34,7 +34,7 @@
     <div class="table-responsive table-entities" id="entities">
       <table class="table table-striped" aria-describedby="page-heading">
         <thead>
-          <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="navigateToWithComponentValues()">
+          <tr jhiSort [sortState]="sortState" (sortChange)="navigateToWithComponentValues($event)">
             <th scope="col" jhiSortBy="id">
               <div class="d-flex">
                 <span jhiTranslate="global.field.id">ID</span>
@@ -105,6 +105,12 @@
                 <fa-icon class="p-1" icon="sort"></fa-icon>
               </div>
             </th>
+            <th scope="col" jhiSortBy="applicationUser.id">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.applicationUser">Application User</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
             <th scope="col" jhiSortBy="category.id">
               <div class="d-flex">
                 <span jhiTranslate="infocare2App.ticket.category">Category</span>
@@ -120,6 +126,12 @@
             <th scope="col" jhiSortBy="priority.id">
               <div class="d-flex">
                 <span jhiTranslate="infocare2App.ticket.priority">Priority</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
+            <th scope="col" jhiSortBy="material.id">
+              <div class="d-flex">
+                <span jhiTranslate="infocare2App.ticket.material">Material</span>
                 <fa-icon class="p-1" icon="sort"></fa-icon>
               </div>
             </th>
@@ -142,6 +154,13 @@
               <td>{{ ticket.resolution }}</td>
               <td>{{ ticket.attachments }}</td>
               <td>
+                @if (ticket.applicationUser) {
+                  <div>
+                    <a [routerLink]="['/application-user', ticket.applicationUser.id, 'view']">{{ ticket.applicationUser.id }}</a>
+                  </div>
+                }
+              </td>
+              <td>
                 @if (ticket.category) {
                   <div>
                     <a [routerLink]="['/category', ticket.category.id, 'view']">{{ ticket.category.id }}</a>
@@ -159,6 +178,13 @@
                 @if (ticket.priority) {
                   <div>
                     <a [routerLink]="['/priority', ticket.priority.id, 'view']">{{ ticket.priority.id }}</a>
+                  </div>
+                }
+              </td>
+              <td>
+                @if (ticket.material) {
+                  <div>
+                    <a [routerLink]="['/material', ticket.material.id, 'view']">{{ ticket.material.id }}</a>
                   </div>
                 }
               </td>

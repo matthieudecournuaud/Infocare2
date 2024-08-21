@@ -32,29 +32,67 @@ class TicketTest {
     }
 
     @Test
-    void materialTest() throws Exception {
+    void applicationUserTest() {
         Ticket ticket = getTicketRandomSampleGenerator();
-        Material materialBack = getMaterialRandomSampleGenerator();
+        ApplicationUser applicationUserBack = getApplicationUserRandomSampleGenerator();
 
-        ticket.addMaterial(materialBack);
-        assertThat(ticket.getMaterials()).containsOnly(materialBack);
-        assertThat(materialBack.getTicket()).isEqualTo(ticket);
+        ticket.setApplicationUser(applicationUserBack);
+        assertThat(ticket.getApplicationUser()).isEqualTo(applicationUserBack);
 
-        ticket.removeMaterial(materialBack);
-        assertThat(ticket.getMaterials()).doesNotContain(materialBack);
-        assertThat(materialBack.getTicket()).isNull();
-
-        ticket.materials(new HashSet<>(Set.of(materialBack)));
-        assertThat(ticket.getMaterials()).containsOnly(materialBack);
-        assertThat(materialBack.getTicket()).isEqualTo(ticket);
-
-        ticket.setMaterials(new HashSet<>());
-        assertThat(ticket.getMaterials()).doesNotContain(materialBack);
-        assertThat(materialBack.getTicket()).isNull();
+        ticket.applicationUser(null);
+        assertThat(ticket.getApplicationUser()).isNull();
     }
 
     @Test
-    void commentTest() throws Exception {
+    void categoryTest() {
+        Ticket ticket = getTicketRandomSampleGenerator();
+        Category categoryBack = getCategoryRandomSampleGenerator();
+
+        ticket.setCategory(categoryBack);
+        assertThat(ticket.getCategory()).isEqualTo(categoryBack);
+
+        ticket.category(null);
+        assertThat(ticket.getCategory()).isNull();
+    }
+
+    @Test
+    void statusTest() {
+        Ticket ticket = getTicketRandomSampleGenerator();
+        Status statusBack = getStatusRandomSampleGenerator();
+
+        ticket.setStatus(statusBack);
+        assertThat(ticket.getStatus()).isEqualTo(statusBack);
+
+        ticket.status(null);
+        assertThat(ticket.getStatus()).isNull();
+    }
+
+    @Test
+    void priorityTest() {
+        Ticket ticket = getTicketRandomSampleGenerator();
+        Priority priorityBack = getPriorityRandomSampleGenerator();
+
+        ticket.setPriority(priorityBack);
+        assertThat(ticket.getPriority()).isEqualTo(priorityBack);
+
+        ticket.priority(null);
+        assertThat(ticket.getPriority()).isNull();
+    }
+
+    @Test
+    void materialTest() {
+        Ticket ticket = getTicketRandomSampleGenerator();
+        Material materialBack = getMaterialRandomSampleGenerator();
+
+        ticket.setMaterial(materialBack);
+        assertThat(ticket.getMaterial()).isEqualTo(materialBack);
+
+        ticket.material(null);
+        assertThat(ticket.getMaterial()).isNull();
+    }
+
+    @Test
+    void commentTest() {
         Ticket ticket = getTicketRandomSampleGenerator();
         Comment commentBack = getCommentRandomSampleGenerator();
 
@@ -76,7 +114,7 @@ class TicketTest {
     }
 
     @Test
-    void interventionTest() throws Exception {
+    void interventionTest() {
         Ticket ticket = getTicketRandomSampleGenerator();
         Intervention interventionBack = getInterventionRandomSampleGenerator();
 
@@ -95,63 +133,5 @@ class TicketTest {
         ticket.setInterventions(new HashSet<>());
         assertThat(ticket.getInterventions()).doesNotContain(interventionBack);
         assertThat(interventionBack.getTicket()).isNull();
-    }
-
-    @Test
-    void categoryTest() throws Exception {
-        Ticket ticket = getTicketRandomSampleGenerator();
-        Category categoryBack = getCategoryRandomSampleGenerator();
-
-        ticket.setCategory(categoryBack);
-        assertThat(ticket.getCategory()).isEqualTo(categoryBack);
-
-        ticket.category(null);
-        assertThat(ticket.getCategory()).isNull();
-    }
-
-    @Test
-    void statusTest() throws Exception {
-        Ticket ticket = getTicketRandomSampleGenerator();
-        Status statusBack = getStatusRandomSampleGenerator();
-
-        ticket.setStatus(statusBack);
-        assertThat(ticket.getStatus()).isEqualTo(statusBack);
-
-        ticket.status(null);
-        assertThat(ticket.getStatus()).isNull();
-    }
-
-    @Test
-    void priorityTest() throws Exception {
-        Ticket ticket = getTicketRandomSampleGenerator();
-        Priority priorityBack = getPriorityRandomSampleGenerator();
-
-        ticket.setPriority(priorityBack);
-        assertThat(ticket.getPriority()).isEqualTo(priorityBack);
-
-        ticket.priority(null);
-        assertThat(ticket.getPriority()).isNull();
-    }
-
-    @Test
-    void applicationUserTest() throws Exception {
-        Ticket ticket = getTicketRandomSampleGenerator();
-        ApplicationUser applicationUserBack = getApplicationUserRandomSampleGenerator();
-
-        ticket.addApplicationUser(applicationUserBack);
-        assertThat(ticket.getApplicationUsers()).containsOnly(applicationUserBack);
-        assertThat(applicationUserBack.getTickets()).containsOnly(ticket);
-
-        ticket.removeApplicationUser(applicationUserBack);
-        assertThat(ticket.getApplicationUsers()).doesNotContain(applicationUserBack);
-        assertThat(applicationUserBack.getTickets()).doesNotContain(ticket);
-
-        ticket.applicationUsers(new HashSet<>(Set.of(applicationUserBack)));
-        assertThat(ticket.getApplicationUsers()).containsOnly(applicationUserBack);
-        assertThat(applicationUserBack.getTickets()).containsOnly(ticket);
-
-        ticket.setApplicationUsers(new HashSet<>());
-        assertThat(ticket.getApplicationUsers()).doesNotContain(applicationUserBack);
-        assertThat(applicationUserBack.getTickets()).doesNotContain(ticket);
     }
 }

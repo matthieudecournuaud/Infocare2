@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -14,12 +14,10 @@ export type EntityArrayResponseType = HttpResponse<ICompany[]>;
 
 @Injectable({ providedIn: 'root' })
 export class CompanyService {
-  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/companies');
+  protected http = inject(HttpClient);
+  protected applicationConfigService = inject(ApplicationConfigService);
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/companies');
 
   create(company: NewCompany): Observable<EntityResponseType> {
     return this.http.post<ICompany>(this.resourceUrl, company, { observe: 'response' });
@@ -60,7 +58,7 @@ export class CompanyService {
   ): Type[] {
     const companies: Type[] = companiesToCheck.filter(isPresent);
     if (companies.length > 0) {
-      const companyCollectionIdentifiers = companyCollection.map(companyItem => this.getCompanyIdentifier(companyItem)!);
+      const companyCollectionIdentifiers = companyCollection.map(companyItem => this.getCompanyIdentifier(companyItem));
       const companiesToAdd = companies.filter(companyItem => {
         const companyIdentifier = this.getCompanyIdentifier(companyItem);
         if (companyCollectionIdentifiers.includes(companyIdentifier)) {

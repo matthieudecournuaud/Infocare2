@@ -1,9 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpResponse } from '@angular/common/http';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClient, HttpResponse } from '@angular/common/http';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
 import { of, Subject, from } from 'rxjs';
 
 import { ITicket } from 'app/entities/ticket/ticket.model';
@@ -24,8 +22,9 @@ describe('Comment Management Update Component', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([]), CommentUpdateComponent],
+      imports: [CommentUpdateComponent],
       providers: [
+        provideHttpClient(),
         FormBuilder,
         {
           provide: ActivatedRoute,
@@ -50,10 +49,10 @@ describe('Comment Management Update Component', () => {
   describe('ngOnInit', () => {
     it('Should call Ticket query and add missing value', () => {
       const comment: IComment = { id: 456 };
-      const ticket: ITicket = { id: 931 };
+      const ticket: ITicket = { id: 22351 };
       comment.ticket = ticket;
 
-      const ticketCollection: ITicket[] = [{ id: 17195 }];
+      const ticketCollection: ITicket[] = [{ id: 20568 }];
       jest.spyOn(ticketService, 'query').mockReturnValue(of(new HttpResponse({ body: ticketCollection })));
       const additionalTickets = [ticket];
       const expectedCollection: ITicket[] = [...additionalTickets, ...ticketCollection];
@@ -72,7 +71,7 @@ describe('Comment Management Update Component', () => {
 
     it('Should update editForm', () => {
       const comment: IComment = { id: 456 };
-      const ticket: ITicket = { id: 6328 };
+      const ticket: ITicket = { id: 12472 };
       comment.ticket = ticket;
 
       activatedRoute.data = of({ comment });

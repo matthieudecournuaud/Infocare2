@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -14,12 +14,10 @@ export type EntityArrayResponseType = HttpResponse<IPriority[]>;
 
 @Injectable({ providedIn: 'root' })
 export class PriorityService {
-  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/priorities');
+  protected http = inject(HttpClient);
+  protected applicationConfigService = inject(ApplicationConfigService);
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/priorities');
 
   create(priority: NewPriority): Observable<EntityResponseType> {
     return this.http.post<IPriority>(this.resourceUrl, priority, { observe: 'response' });
@@ -60,7 +58,7 @@ export class PriorityService {
   ): Type[] {
     const priorities: Type[] = prioritiesToCheck.filter(isPresent);
     if (priorities.length > 0) {
-      const priorityCollectionIdentifiers = priorityCollection.map(priorityItem => this.getPriorityIdentifier(priorityItem)!);
+      const priorityCollectionIdentifiers = priorityCollection.map(priorityItem => this.getPriorityIdentifier(priorityItem));
       const prioritiesToAdd = priorities.filter(priorityItem => {
         const priorityIdentifier = this.getPriorityIdentifier(priorityItem);
         if (priorityCollectionIdentifiers.includes(priorityIdentifier)) {

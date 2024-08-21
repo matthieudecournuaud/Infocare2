@@ -28,7 +28,7 @@ import tech.jhipster.web.util.ResponseUtil;
 @Transactional
 public class ProcedureResource {
 
-    private final Logger log = LoggerFactory.getLogger(ProcedureResource.class);
+    private static final Logger log = LoggerFactory.getLogger(ProcedureResource.class);
 
     private static final String ENTITY_NAME = "procedure";
 
@@ -54,11 +54,10 @@ public class ProcedureResource {
         if (procedure.getId() != null) {
             throw new BadRequestAlertException("A new procedure cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Procedure result = procedureRepository.save(procedure);
-        return ResponseEntity
-            .created(new URI("/api/procedures/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        procedure = procedureRepository.save(procedure);
+        return ResponseEntity.created(new URI("/api/procedures/" + procedure.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, procedure.getId().toString()))
+            .body(procedure);
     }
 
     /**
@@ -88,11 +87,10 @@ public class ProcedureResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Procedure result = procedureRepository.save(procedure);
-        return ResponseEntity
-            .ok()
+        procedure = procedureRepository.save(procedure);
+        return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, procedure.getId().toString()))
-            .body(result);
+            .body(procedure);
     }
 
     /**
@@ -183,8 +181,7 @@ public class ProcedureResource {
     public List<Procedure> getAllProcedures(@RequestParam(name = "filter", required = false) String filter) {
         if ("intervention-is-null".equals(filter)) {
             log.debug("REST request to get all Procedures where intervention is null");
-            return StreamSupport
-                .stream(procedureRepository.findAll().spliterator(), false)
+            return StreamSupport.stream(procedureRepository.findAll().spliterator(), false)
                 .filter(procedure -> procedure.getIntervention() == null)
                 .toList();
         }
@@ -215,8 +212,7 @@ public class ProcedureResource {
     public ResponseEntity<Void> deleteProcedure(@PathVariable("id") Long id) {
         log.debug("REST request to delete Procedure : {}", id);
         procedureRepository.deleteById(id);
-        return ResponseEntity
-            .noContent()
+        return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }

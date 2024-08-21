@@ -29,9 +29,11 @@ describe('Ticket Form Service', () => {
             impact: expect.any(Object),
             resolution: expect.any(Object),
             attachments: expect.any(Object),
+            applicationUser: expect.any(Object),
             category: expect.any(Object),
             status: expect.any(Object),
             priority: expect.any(Object),
+            material: expect.any(Object),
           }),
         );
       });
@@ -51,9 +53,11 @@ describe('Ticket Form Service', () => {
             impact: expect.any(Object),
             resolution: expect.any(Object),
             attachments: expect.any(Object),
+            applicationUser: expect.any(Object),
             category: expect.any(Object),
             status: expect.any(Object),
             priority: expect.any(Object),
+            material: expect.any(Object),
           }),
         );
       });

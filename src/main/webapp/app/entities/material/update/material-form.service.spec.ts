@@ -31,7 +31,6 @@ describe('Material Form Service', () => {
             note: expect.any(Object),
             serialNumber: expect.any(Object),
             company: expect.any(Object),
-            ticket: expect.any(Object),
           }),
         );
       });
@@ -53,7 +52,6 @@ describe('Material Form Service', () => {
             note: expect.any(Object),
             serialNumber: expect.any(Object),
             company: expect.any(Object),
-            ticket: expect.any(Object),
           }),
         );
       });

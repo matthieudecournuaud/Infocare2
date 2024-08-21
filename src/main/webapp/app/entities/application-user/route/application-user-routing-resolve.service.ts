@@ -7,7 +7,7 @@ import { mergeMap } from 'rxjs/operators';
 import { IApplicationUser } from '../application-user.model';
 import { ApplicationUserService } from '../service/application-user.service';
 
-export const applicationUserResolve = (route: ActivatedRouteSnapshot): Observable<null | IApplicationUser> => {
+const applicationUserResolve = (route: ActivatedRouteSnapshot): Observable<null | IApplicationUser> => {
   const id = route.params['id'];
   if (id) {
     return inject(ApplicationUserService)

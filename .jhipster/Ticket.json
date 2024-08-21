@@ -3,7 +3,6 @@
     "changelogDate": "20240122133638"
   },
   "applications": "*",
-  "entityTableName": "ticket",
   "fields": [
     {
       "fieldName": "title",
@@ -56,11 +55,39 @@
   "name": "Ticket",
   "relationships": [
     {
+      "otherEntityName": "applicationUser",
+      "otherEntityRelationshipName": "ticket",
+      "relationshipName": "applicationUser",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-one"
+    },
+    {
+      "otherEntityName": "category",
+      "otherEntityRelationshipName": "ticket",
+      "relationshipName": "category",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-one"
+    },
+    {
+      "otherEntityName": "status",
+      "otherEntityRelationshipName": "ticket",
+      "relationshipName": "status",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-one"
+    },
+    {
+      "otherEntityName": "priority",
+      "otherEntityRelationshipName": "ticket",
+      "relationshipName": "priority",
+      "relationshipSide": "left",
+      "relationshipType": "one-to-one"
+    },
+    {
       "otherEntityName": "material",
       "otherEntityRelationshipName": "ticket",
       "relationshipName": "material",
       "relationshipSide": "left",
-      "relationshipType": "one-to-many"
+      "relationshipType": "one-to-one"
     },
     {
       "otherEntityName": "comment",
@@ -75,31 +102,6 @@
       "relationshipName": "intervention",
       "relationshipSide": "left",
       "relationshipType": "one-to-many"
-    },
-    {
-      "otherEntityName": "category",
-      "relationshipName": "category",
-      "relationshipSide": "left",
-      "relationshipType": "many-to-one"
-    },
-    {
-      "otherEntityName": "status",
-      "relationshipName": "status",
-      "relationshipSide": "left",
-      "relationshipType": "many-to-one"
-    },
-    {
-      "otherEntityName": "priority",
-      "relationshipName": "priority",
-      "relationshipSide": "left",
-      "relationshipType": "many-to-one"
-    },
-    {
-      "otherEntityName": "applicationUser",
-      "otherEntityRelationshipName": "ticket",
-      "relationshipName": "applicationUser",
-      "relationshipSide": "right",
-      "relationshipType": "many-to-many"
     }
   ],
   "searchEngine": "no"

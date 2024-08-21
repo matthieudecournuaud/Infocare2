@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -21,13 +21,12 @@ export class PriorityUpdateComponent implements OnInit {
   isSaving = false;
   priority: IPriority | null = null;
 
-  editForm: PriorityFormGroup = this.priorityFormService.createPriorityFormGroup();
+  protected priorityService = inject(PriorityService);
+  protected priorityFormService = inject(PriorityFormService);
+  protected activatedRoute = inject(ActivatedRoute);
 
-  constructor(
-    protected priorityService: PriorityService,
-    protected priorityFormService: PriorityFormService,
-    protected activatedRoute: ActivatedRoute,
-  ) {}
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  editForm: PriorityFormGroup = this.priorityFormService.createPriorityFormGroup();
 
   ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ priority }) => {

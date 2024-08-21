@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { Component, input } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 import SharedModule from 'app/shared/shared.module';
 import { DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe } from 'app/shared/date';
@@ -12,9 +12,7 @@ import { IIntervention } from '../intervention.model';
   imports: [SharedModule, RouterModule, DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe],
 })
 export class InterventionDetailComponent {
-  @Input() intervention: IIntervention | null = null;
-
-  constructor(protected activatedRoute: ActivatedRoute) {}
+  intervention = input<IIntervention | null>(null);
 
   previousState(): void {
     window.history.back();

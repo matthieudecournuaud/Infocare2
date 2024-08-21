@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center">
   <div class="col-8">
-    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+    <form name="editForm" novalidate (ngSubmit)="save()" [formGroup]="editForm">
       <h2 id="jhi-procedure-heading" data-cy="ProcedureCreateUpdateHeading" jhiTranslate="infocare2App.procedure.home.createOrEditLabel">
         Créer ou éditer un Procedure
       </h2>
@@ -10,18 +10,18 @@
 
         @if (editForm.controls.id.value !== null) {
           <div class="mb-3">
-            <label class="form-label" jhiTranslate="global.field.id" for="field_id">ID</label>
+            <label class="form-label" for="field_id" jhiTranslate="infocare2App.procedure.id">ID</label>
             <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
           </div>
         }
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.name" for="field_name">Name</label>
+          <label class="form-label" for="field_name" jhiTranslate="infocare2App.procedure.name">Name</label>
           <input type="text" class="form-control" name="name" id="field_name" data-cy="name" formControlName="name" />
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.description" for="field_description">Description</label>
+          <label class="form-label" for="field_description" jhiTranslate="infocare2App.procedure.description">Description</label>
           <input
             type="text"
             class="form-control"
@@ -33,12 +33,12 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.category" for="field_category">Category</label>
+          <label class="form-label" for="field_category" jhiTranslate="infocare2App.procedure.category">Category</label>
           <input type="text" class="form-control" name="category" id="field_category" data-cy="category" formControlName="category" />
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.procedureId" for="field_procedureId">Procedure Id</label>
+          <label class="form-label" for="field_procedureId" jhiTranslate="infocare2App.procedure.procedureId">Procedure Id</label>
           <input
             type="number"
             class="form-control"
@@ -50,7 +50,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.stepByStepGuide" for="field_stepByStepGuide"
+          <label class="form-label" for="field_stepByStepGuide" jhiTranslate="infocare2App.procedure.stepByStepGuide"
             >Step By Step Guide</label
           >
           <input
@@ -66,7 +66,7 @@
           ) {
             <div>
               @if (editForm.get('stepByStepGuide')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 5000 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '5000' }"
                   >Ce champ doit faire moins de 5000 caractères.</small
                 >
               }
@@ -75,7 +75,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.estimatedTime" for="field_estimatedTime">Estimated Time</label>
+          <label class="form-label" for="field_estimatedTime" jhiTranslate="infocare2App.procedure.estimatedTime">Estimated Time</label>
           <input
             type="number"
             class="form-control"
@@ -87,7 +87,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.requiredTools" for="field_requiredTools">Required Tools</label>
+          <label class="form-label" for="field_requiredTools" jhiTranslate="infocare2App.procedure.requiredTools">Required Tools</label>
           <input
             type="text"
             class="form-control"
@@ -99,7 +99,7 @@
           @if (editForm.get('requiredTools')!.invalid && (editForm.get('requiredTools')!.dirty || editForm.get('requiredTools')!.touched)) {
             <div>
               @if (editForm.get('requiredTools')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 500 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '500' }"
                   >Ce champ doit faire moins de 500 caractères.</small
                 >
               }
@@ -108,7 +108,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.skillsRequired" for="field_skillsRequired">Skills Required</label>
+          <label class="form-label" for="field_skillsRequired" jhiTranslate="infocare2App.procedure.skillsRequired">Skills Required</label>
           <input
             type="text"
             class="form-control"
@@ -122,7 +122,7 @@
           ) {
             <div>
               @if (editForm.get('skillsRequired')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 500 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '500' }"
                   >Ce champ doit faire moins de 500 caractères.</small
                 >
               }
@@ -131,7 +131,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.safetyInstructions" for="field_safetyInstructions"
+          <label class="form-label" for="field_safetyInstructions" jhiTranslate="infocare2App.procedure.safetyInstructions"
             >Safety Instructions</label
           >
           <input
@@ -148,7 +148,7 @@
           ) {
             <div>
               @if (editForm.get('safetyInstructions')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 500 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '500' }"
                   >Ce champ doit faire moins de 500 caractères.</small
                 >
               }
@@ -157,7 +157,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.lastReviewed" for="field_lastReviewed">Last Reviewed</label>
+          <label class="form-label" for="field_lastReviewed" jhiTranslate="infocare2App.procedure.lastReviewed">Last Reviewed</label>
           <div class="input-group">
             <input
               id="field_lastReviewed"
@@ -176,7 +176,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.reviewedBy" for="field_reviewedBy">Reviewed By</label>
+          <label class="form-label" for="field_reviewedBy" jhiTranslate="infocare2App.procedure.reviewedBy">Reviewed By</label>
           <input
             type="text"
             class="form-control"
@@ -188,7 +188,7 @@
           @if (editForm.get('reviewedBy')!.invalid && (editForm.get('reviewedBy')!.dirty || editForm.get('reviewedBy')!.touched)) {
             <div>
               @if (editForm.get('reviewedBy')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '50' }"
                   >Ce champ doit faire moins de 50 caractères.</small
                 >
               }
@@ -197,7 +197,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.procedure.attachments" for="field_attachments">Attachments</label>
+          <label class="form-label" for="field_attachments" jhiTranslate="infocare2App.procedure.attachments">Attachments</label>
           <input
             type="text"
             class="form-control"
@@ -209,7 +209,7 @@
           @if (editForm.get('attachments')!.invalid && (editForm.get('attachments')!.dirty || editForm.get('attachments')!.touched)) {
             <div>
               @if (editForm.get('attachments')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 200 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '200' }"
                   >Ce champ doit faire moins de 200 caractères.</small
                 >
               }

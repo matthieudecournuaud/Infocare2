@@ -20,7 +20,8 @@
       "id": "ID",
       "name": "Name",
       "description": "Description",
-      "colorCode": "Color Code"
+      "colorCode": "Color Code",
+      "ticket": "Ticket"
     }
   }
 }

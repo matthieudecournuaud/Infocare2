@@ -7,7 +7,7 @@ import { mergeMap } from 'rxjs/operators';
 import { ICategory } from '../category.model';
 import { CategoryService } from '../service/category.service';
 
-export const categoryResolve = (route: ActivatedRouteSnapshot): Observable<null | ICategory> => {
+const categoryResolve = (route: ActivatedRouteSnapshot): Observable<null | ICategory> => {
   const id = route.params['id'];
   if (id) {
     return inject(CategoryService)

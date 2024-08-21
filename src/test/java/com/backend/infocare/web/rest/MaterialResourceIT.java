@@ -1,5 +1,7 @@
 package com.backend.infocare.web.rest;
 
+import static com.backend.infocare.domain.MaterialAsserts.*;
+import static com.backend.infocare.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -8,12 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.backend.infocare.IntegrationTest;
 import com.backend.infocare.domain.Material;
 import com.backend.infocare.repository.MaterialRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +71,9 @@ class MaterialResourceIT {
     private static AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
     @Autowired
+    private ObjectMapper om;
+
+    @Autowired
     private MaterialRepository materialRepository;
 
     @Autowired
@@ -77,6 +83,8 @@ class MaterialResourceIT {
     private MockMvc restMaterialMockMvc;
 
     private Material material;
+
+    private Material insertedMaterial;
 
     /**
      * Create an entity for this test.
@@ -125,29 +133,34 @@ class MaterialResourceIT {
         material = createEntity(em);
     }
 
+    @AfterEach
+    public void cleanup() {
+        if (insertedMaterial != null) {
+            materialRepository.delete(insertedMaterial);
+            insertedMaterial = null;
+        }
+    }
+
     @Test
     @Transactional
     void createMaterial() throws Exception {
-        int databaseSizeBeforeCreate = materialRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Material
-        restMaterialMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(material)))
-            .andExpect(status().isCreated());
+        var returnedMaterial = om.readValue(
+            restMaterialMockMvc
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(material)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            Material.class
+        );
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeCreate + 1);
-        Material testMaterial = materialList.get(materialList.size() - 1);
-        assertThat(testMaterial.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testMaterial.getType()).isEqualTo(DEFAULT_TYPE);
-        assertThat(testMaterial.getPurchaseDate()).isEqualTo(DEFAULT_PURCHASE_DATE);
-        assertThat(testMaterial.getWarrantyEndDate()).isEqualTo(DEFAULT_WARRANTY_END_DATE);
-        assertThat(testMaterial.getManufacturer()).isEqualTo(DEFAULT_MANUFACTURER);
-        assertThat(testMaterial.getModel()).isEqualTo(DEFAULT_MODEL);
-        assertThat(testMaterial.getStatusMaterial()).isEqualTo(DEFAULT_STATUS_MATERIAL);
-        assertThat(testMaterial.getLastMaintenanceDate()).isEqualTo(DEFAULT_LAST_MAINTENANCE_DATE);
-        assertThat(testMaterial.getNote()).isEqualTo(DEFAULT_NOTE);
-        assertThat(testMaterial.getSerialNumber()).isEqualTo(DEFAULT_SERIAL_NUMBER);
+        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        assertMaterialUpdatableFieldsEquals(returnedMaterial, getPersistedMaterial(returnedMaterial));
+
+        insertedMaterial = returnedMaterial;
     }
 
     @Test
@@ -156,57 +169,54 @@ class MaterialResourceIT {
         // Create the Material with an existing ID
         material.setId(1L);
 
-        int databaseSizeBeforeCreate = materialRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restMaterialMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(material)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(material)))
             .andExpect(status().isBadRequest());
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeCreate);
+        assertSameRepositoryCount(databaseSizeBeforeCreate);
     }
 
     @Test
     @Transactional
     void checkNameIsRequired() throws Exception {
-        int databaseSizeBeforeTest = materialRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         material.setName(null);
 
         // Create the Material, which fails.
 
         restMaterialMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(material)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(material)))
             .andExpect(status().isBadRequest());
 
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void checkTypeIsRequired() throws Exception {
-        int databaseSizeBeforeTest = materialRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         material.setType(null);
 
         // Create the Material, which fails.
 
         restMaterialMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(material)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(material)))
             .andExpect(status().isBadRequest());
 
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void getAllMaterials() throws Exception {
         // Initialize the database
-        materialRepository.saveAndFlush(material);
+        insertedMaterial = materialRepository.saveAndFlush(material);
 
         // Get all the materialList
         restMaterialMockMvc
@@ -230,7 +240,7 @@ class MaterialResourceIT {
     @Transactional
     void getMaterial() throws Exception {
         // Initialize the database
-        materialRepository.saveAndFlush(material);
+        insertedMaterial = materialRepository.saveAndFlush(material);
 
         // Get the material
         restMaterialMockMvc
@@ -261,9 +271,9 @@ class MaterialResourceIT {
     @Transactional
     void putExistingMaterial() throws Exception {
         // Initialize the database
-        materialRepository.saveAndFlush(material);
+        insertedMaterial = materialRepository.saveAndFlush(material);
 
-        int databaseSizeBeforeUpdate = materialRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the material
         Material updatedMaterial = materialRepository.findById(material.getId()).orElseThrow();
@@ -285,50 +295,36 @@ class MaterialResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, updatedMaterial.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(updatedMaterial))
+                    .content(om.writeValueAsBytes(updatedMaterial))
             )
             .andExpect(status().isOk());
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeUpdate);
-        Material testMaterial = materialList.get(materialList.size() - 1);
-        assertThat(testMaterial.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testMaterial.getType()).isEqualTo(UPDATED_TYPE);
-        assertThat(testMaterial.getPurchaseDate()).isEqualTo(UPDATED_PURCHASE_DATE);
-        assertThat(testMaterial.getWarrantyEndDate()).isEqualTo(UPDATED_WARRANTY_END_DATE);
-        assertThat(testMaterial.getManufacturer()).isEqualTo(UPDATED_MANUFACTURER);
-        assertThat(testMaterial.getModel()).isEqualTo(UPDATED_MODEL);
-        assertThat(testMaterial.getStatusMaterial()).isEqualTo(UPDATED_STATUS_MATERIAL);
-        assertThat(testMaterial.getLastMaintenanceDate()).isEqualTo(UPDATED_LAST_MAINTENANCE_DATE);
-        assertThat(testMaterial.getNote()).isEqualTo(UPDATED_NOTE);
-        assertThat(testMaterial.getSerialNumber()).isEqualTo(UPDATED_SERIAL_NUMBER);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPersistedMaterialToMatchAllProperties(updatedMaterial);
     }
 
     @Test
     @Transactional
     void putNonExistingMaterial() throws Exception {
-        int databaseSizeBeforeUpdate = materialRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         material.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restMaterialMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, material.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(material))
+                put(ENTITY_API_URL_ID, material.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(material))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithIdMismatchMaterial() throws Exception {
-        int databaseSizeBeforeUpdate = materialRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         material.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -336,38 +332,36 @@ class MaterialResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(material))
+                    .content(om.writeValueAsBytes(material))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithMissingIdPathParamMaterial() throws Exception {
-        int databaseSizeBeforeUpdate = materialRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         material.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restMaterialMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(material)))
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(material)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void partialUpdateMaterialWithPatch() throws Exception {
         // Initialize the database
-        materialRepository.saveAndFlush(material);
+        insertedMaterial = materialRepository.saveAndFlush(material);
 
-        int databaseSizeBeforeUpdate = materialRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the material using partial update
         Material partialUpdatedMaterial = new Material();
@@ -382,33 +376,23 @@ class MaterialResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedMaterial.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedMaterial))
+                    .content(om.writeValueAsBytes(partialUpdatedMaterial))
             )
             .andExpect(status().isOk());
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeUpdate);
-        Material testMaterial = materialList.get(materialList.size() - 1);
-        assertThat(testMaterial.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testMaterial.getType()).isEqualTo(DEFAULT_TYPE);
-        assertThat(testMaterial.getPurchaseDate()).isEqualTo(DEFAULT_PURCHASE_DATE);
-        assertThat(testMaterial.getWarrantyEndDate()).isEqualTo(UPDATED_WARRANTY_END_DATE);
-        assertThat(testMaterial.getManufacturer()).isEqualTo(DEFAULT_MANUFACTURER);
-        assertThat(testMaterial.getModel()).isEqualTo(DEFAULT_MODEL);
-        assertThat(testMaterial.getStatusMaterial()).isEqualTo(DEFAULT_STATUS_MATERIAL);
-        assertThat(testMaterial.getLastMaintenanceDate()).isEqualTo(UPDATED_LAST_MAINTENANCE_DATE);
-        assertThat(testMaterial.getNote()).isEqualTo(UPDATED_NOTE);
-        assertThat(testMaterial.getSerialNumber()).isEqualTo(DEFAULT_SERIAL_NUMBER);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertMaterialUpdatableFieldsEquals(createUpdateProxyForBean(partialUpdatedMaterial, material), getPersistedMaterial(material));
     }
 
     @Test
     @Transactional
     void fullUpdateMaterialWithPatch() throws Exception {
         // Initialize the database
-        materialRepository.saveAndFlush(material);
+        insertedMaterial = materialRepository.saveAndFlush(material);
 
-        int databaseSizeBeforeUpdate = materialRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the material using partial update
         Material partialUpdatedMaterial = new Material();
@@ -430,30 +414,20 @@ class MaterialResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedMaterial.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedMaterial))
+                    .content(om.writeValueAsBytes(partialUpdatedMaterial))
             )
             .andExpect(status().isOk());
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeUpdate);
-        Material testMaterial = materialList.get(materialList.size() - 1);
-        assertThat(testMaterial.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testMaterial.getType()).isEqualTo(UPDATED_TYPE);
-        assertThat(testMaterial.getPurchaseDate()).isEqualTo(UPDATED_PURCHASE_DATE);
-        assertThat(testMaterial.getWarrantyEndDate()).isEqualTo(UPDATED_WARRANTY_END_DATE);
-        assertThat(testMaterial.getManufacturer()).isEqualTo(UPDATED_MANUFACTURER);
-        assertThat(testMaterial.getModel()).isEqualTo(UPDATED_MODEL);
-        assertThat(testMaterial.getStatusMaterial()).isEqualTo(UPDATED_STATUS_MATERIAL);
-        assertThat(testMaterial.getLastMaintenanceDate()).isEqualTo(UPDATED_LAST_MAINTENANCE_DATE);
-        assertThat(testMaterial.getNote()).isEqualTo(UPDATED_NOTE);
-        assertThat(testMaterial.getSerialNumber()).isEqualTo(UPDATED_SERIAL_NUMBER);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertMaterialUpdatableFieldsEquals(partialUpdatedMaterial, getPersistedMaterial(partialUpdatedMaterial));
     }
 
     @Test
     @Transactional
     void patchNonExistingMaterial() throws Exception {
-        int databaseSizeBeforeUpdate = materialRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         material.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
@@ -461,19 +435,18 @@ class MaterialResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, material.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(material))
+                    .content(om.writeValueAsBytes(material))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithIdMismatchMaterial() throws Exception {
-        int databaseSizeBeforeUpdate = materialRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         material.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -481,38 +454,36 @@ class MaterialResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(material))
+                    .content(om.writeValueAsBytes(material))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithMissingIdPathParamMaterial() throws Exception {
-        int databaseSizeBeforeUpdate = materialRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         material.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restMaterialMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(material)))
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(material)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Material in the database
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void deleteMaterial() throws Exception {
         // Initialize the database
-        materialRepository.saveAndFlush(material);
+        insertedMaterial = materialRepository.saveAndFlush(material);
 
-        int databaseSizeBeforeDelete = materialRepository.findAll().size();
+        long databaseSizeBeforeDelete = getRepositoryCount();
 
         // Delete the material
         restMaterialMockMvc
@@ -520,7 +491,34 @@ class MaterialResourceIT {
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
-        List<Material> materialList = materialRepository.findAll();
-        assertThat(materialList).hasSize(databaseSizeBeforeDelete - 1);
+        assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
+    }
+
+    protected long getRepositoryCount() {
+        return materialRepository.count();
+    }
+
+    protected void assertIncrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore + 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertDecrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore - 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertSameRepositoryCount(long countBefore) {
+        assertThat(countBefore).isEqualTo(getRepositoryCount());
+    }
+
+    protected Material getPersistedMaterial(Material material) {
+        return materialRepository.findById(material.getId()).orElseThrow();
+    }
+
+    protected void assertPersistedMaterialToMatchAllProperties(Material expectedMaterial) {
+        assertMaterialAllPropertiesEquals(expectedMaterial, getPersistedMaterial(expectedMaterial));
+    }
+
+    protected void assertPersistedMaterialToMatchUpdatableProperties(Material expectedMaterial) {
+        assertMaterialAllUpdatablePropertiesEquals(expectedMaterial, getPersistedMaterial(expectedMaterial));
     }
 }

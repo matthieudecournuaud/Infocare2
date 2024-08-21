@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center">
   <div class="col-8">
-    @if (applicationUser) {
+    @if (applicationUser()) {
       <div>
         <h2 data-cy="applicationUserDetailsHeading">
           <span jhiTranslate="infocare2App.applicationUser.detail.title">Application User</span>
@@ -15,36 +15,27 @@
         <dl class="row-md jh-entity-details">
           <dt><span jhiTranslate="global.field.id">ID</span></dt>
           <dd>
-            <span>{{ applicationUser.id }}</span>
+            <span>{{ applicationUser()!.id }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.applicationUser.phoneNumber">Phone Number</span></dt>
           <dd>
-            <span>{{ applicationUser.phoneNumber }}</span>
+            <span>{{ applicationUser()!.phoneNumber }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.applicationUser.location">Location</span></dt>
           <dd>
-            <span>{{ applicationUser.location }}</span>
+            <span>{{ applicationUser()!.location }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.applicationUser.avatar">Avatar</span></dt>
           <dd>
-            <span>{{ applicationUser.avatar }}</span>
+            <span>{{ applicationUser()!.avatar }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.applicationUser.notes">Notes</span></dt>
           <dd>
-            <span>{{ applicationUser.notes }}</span>
+            <span>{{ applicationUser()!.notes }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.applicationUser.user">User</span></dt>
           <dd>
-            <span>{{ applicationUser.user?.id }}</span>
-          </dd>
-          <dt><span jhiTranslate="infocare2App.applicationUser.ticket">Ticket</span></dt>
-          <dd>
-            @for (ticket of applicationUser.tickets; track $index; let last = $last) {
-              <span>
-                <a [routerLink]="['/ticket', ticket.id, 'view']">{{ ticket.id }}</a
-                >{{ last ? '' : ', ' }}
-              </span>
-            }
+            <span>{{ applicationUser()!.user?.id }}</span>
           </dd>
         </dl>
 
@@ -52,7 +43,7 @@
           <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
         </button>
 
-        <button type="button" [routerLink]="['/application-user', applicationUser.id, 'edit']" class="btn btn-primary">
+        <button type="button" [routerLink]="['/application-user', applicationUser()!.id, 'edit']" class="btn btn-primary">
           <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
         </button>
       </div>

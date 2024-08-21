@@ -7,7 +7,7 @@ import { mergeMap } from 'rxjs/operators';
 import { IMaterial } from '../material.model';
 import { MaterialService } from '../service/material.service';
 
-export const materialResolve = (route: ActivatedRouteSnapshot): Observable<null | IMaterial> => {
+const materialResolve = (route: ActivatedRouteSnapshot): Observable<null | IMaterial> => {
   const id = route.params['id'];
   if (id) {
     return inject(MaterialService)

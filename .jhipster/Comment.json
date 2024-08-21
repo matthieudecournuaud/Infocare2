@@ -3,7 +3,6 @@
     "changelogDate": "20240122134438"
   },
   "applications": "*",
-  "entityTableName": "comment",
   "fields": [
     {
       "fieldName": "title",

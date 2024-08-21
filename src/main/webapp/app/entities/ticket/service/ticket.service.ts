@@ -1,8 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-import { map } from 'rxjs/operators';
+import { map, Observable } from 'rxjs';
 
 import dayjs from 'dayjs/esm';
 
@@ -32,12 +30,10 @@ export type EntityArrayResponseType = HttpResponse<ITicket[]>;
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
-  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/tickets');
+  protected http = inject(HttpClient);
+  protected applicationConfigService = inject(ApplicationConfigService);
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/tickets');
 
   create(ticket: NewTicket): Observable<EntityResponseType> {
     const copy = this.convertDateFromClient(ticket);
@@ -73,20 +69,6 @@ export class TicketService {
       .pipe(map(res => this.convertResponseArrayFromServer(res)));
   }
 
-  queryRecent(): Observable<EntityArrayResponseType> {
-    return this.http
-      .get<ITicket[]>(`${this.resourceUrl}/recent`, { observe: 'response' })
-      .pipe(map(res => this.convertResponseArrayFromServerForRecent(res)));
-  }
-
-  getResolvedTicketsPercentage(username: string): Observable<number> {
-    return this.http.get<number>(`${this.resourceUrl}/user/${username}/resolved-tickets-percentage`);
-  }
-
-  getTicketsCountByPriorityForUser(username: string): Observable<HttpResponse<unknown[]>> {
-    return this.http.get<unknown[]>(`${this.resourceUrl}/user/${username}/tickets-by-priority`, { observe: 'response' });
-  }
-
   delete(id: number): Observable<HttpResponse<{}>> {
     return this.http.delete(`${this.resourceUrl}/${id}`, { observe: 'response' });
   }
@@ -105,7 +87,7 @@ export class TicketService {
   ): Type[] {
     const tickets: Type[] = ticketsToCheck.filter(isPresent);
     if (tickets.length > 0) {
-      const ticketCollectionIdentifiers = ticketCollection.map(ticketItem => this.getTicketIdentifier(ticketItem)!);
+      const ticketCollectionIdentifiers = ticketCollection.map(ticketItem => this.getTicketIdentifier(ticketItem));
       const ticketsToAdd = tickets.filter(ticketItem => {
         const ticketIdentifier = this.getTicketIdentifier(ticketItem);
         if (ticketCollectionIdentifiers.includes(ticketIdentifier)) {
@@ -148,12 +130,6 @@ export class TicketService {
   protected convertResponseArrayFromServer(res: HttpResponse<RestTicket[]>): HttpResponse<ITicket[]> {
     return res.clone({
       body: res.body ? res.body.map(item => this.convertDateFromServer(item)) : null,
-    });
-  }
-
-  protected convertResponseArrayFromServerForRecent(res: HttpResponse<ITicket[]>): HttpResponse<ITicket[]> {
-    return res.clone({
-      body: res.body ? res.body.map(ticket => this.convertDateFromServer(ticket as any)) : null,
     });
   }
 }

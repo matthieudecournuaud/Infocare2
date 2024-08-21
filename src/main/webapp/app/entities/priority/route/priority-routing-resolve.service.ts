@@ -7,7 +7,7 @@ import { mergeMap } from 'rxjs/operators';
 import { IPriority } from '../priority.model';
 import { PriorityService } from '../service/priority.service';
 
-export const priorityResolve = (route: ActivatedRouteSnapshot): Observable<null | IPriority> => {
+const priorityResolve = (route: ActivatedRouteSnapshot): Observable<null | IPriority> => {
   const id = route.params['id'];
   if (id) {
     return inject(PriorityService)

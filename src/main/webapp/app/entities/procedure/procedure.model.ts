@@ -1,5 +1,4 @@
 import dayjs from 'dayjs/esm';
-import { IIntervention } from 'app/entities/intervention/intervention.model';
 
 export interface IProcedure {
   id: number;
@@ -15,7 +14,6 @@ export interface IProcedure {
   lastReviewed?: dayjs.Dayjs | null;
   reviewedBy?: string | null;
   attachments?: string | null;
-  intervention?: IIntervention | null;
 }
 
 export type NewProcedure = Omit<IProcedure, 'id'> & { id: null };

@@ -1,27 +1,26 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpHeaders, HttpResponse } from '@angular/common/http';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed, fakeAsync, inject, tick } from '@angular/core/testing';
+import { provideHttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
-import { RouterTestingModule } from '@angular/router/testing';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
+import { sampleWithRequiredData } from '../priority.test-samples';
 import { PriorityService } from '../service/priority.service';
 
 import { PriorityComponent } from './priority.component';
+import SpyInstance = jest.SpyInstance;
 
 describe('Priority Management Component', () => {
   let comp: PriorityComponent;
   let fixture: ComponentFixture<PriorityComponent>;
   let service: PriorityService;
+  let routerNavigateSpy: SpyInstance<Promise<boolean>>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule.withRoutes([{ path: 'priority', component: PriorityComponent }]),
-        HttpClientTestingModule,
-        PriorityComponent,
-      ],
+      imports: [PriorityComponent],
       providers: [
+        provideHttpClient(),
         {
           provide: ActivatedRoute,
           useValue: {
@@ -35,7 +34,14 @@ describe('Priority Management Component', () => {
                 sort: 'id,desc',
               }),
             ),
-            snapshot: { queryParams: {} },
+            snapshot: {
+              queryParams: {},
+              queryParamMap: jest.requireActual('@angular/router').convertToParamMap({
+                page: '1',
+                size: '1',
+                sort: 'id,desc',
+              }),
+            },
           },
         },
       ],
@@ -46,16 +52,30 @@ describe('Priority Management Component', () => {
     fixture = TestBed.createComponent(PriorityComponent);
     comp = fixture.componentInstance;
     service = TestBed.inject(PriorityService);
+    routerNavigateSpy = jest.spyOn(comp.router, 'navigate');
 
-    const headers = new HttpHeaders();
-    jest.spyOn(service, 'query').mockReturnValue(
-      of(
-        new HttpResponse({
-          body: [{ id: 123 }],
-          headers,
-        }),
-      ),
-    );
+    jest
+      .spyOn(service, 'query')
+      .mockReturnValueOnce(
+        of(
+          new HttpResponse({
+            body: [{ id: 123 }],
+            headers: new HttpHeaders({
+              link: '<http://localhost/api/foo?page=1&size=20>; rel="next"',
+            }),
+          }),
+        ),
+      )
+      .mockReturnValueOnce(
+        of(
+          new HttpResponse({
+            body: [{ id: 456 }],
+            headers: new HttpHeaders({
+              link: '<http://localhost/api/foo?page=0&size=20>; rel="prev",<http://localhost/api/foo?page=2&size=20>; rel="next"',
+            }),
+          }),
+        ),
+      );
   });
 
   it('Should call load all on init', () => {
@@ -75,5 +95,75 @@ describe('Priority Management Component', () => {
       expect(service.getPriorityIdentifier).toHaveBeenCalledWith(entity);
       expect(id).toBe(entity.id);
     });
+  });
+
+  it('should calculate the sort attribute for a non-id attribute', () => {
+    // WHEN
+    comp.navigateToWithComponentValues({ predicate: 'non-existing-column', order: 'asc' });
+
+    // THEN
+    expect(routerNavigateSpy).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        queryParams: expect.objectContaining({
+          sort: ['non-existing-column,asc'],
+        }),
+      }),
+    );
+  });
+
+  it('should calculate the sort attribute for an id', () => {
+    // WHEN
+    comp.ngOnInit();
+
+    // THEN
+    expect(service.query).toHaveBeenLastCalledWith(expect.objectContaining({ sort: ['id,desc'] }));
+  });
+
+  describe('delete', () => {
+    let ngbModal: NgbModal;
+    let deleteModalMock: any;
+
+    beforeEach(() => {
+      deleteModalMock = { componentInstance: {}, closed: new Subject() };
+      // NgbModal is not a singleton using TestBed.inject.
+      // ngbModal = TestBed.inject(NgbModal);
+      ngbModal = (comp as any).modalService;
+      jest.spyOn(ngbModal, 'open').mockReturnValue(deleteModalMock);
+    });
+
+    it('on confirm should call load', inject(
+      [],
+      fakeAsync(() => {
+        // GIVEN
+        jest.spyOn(comp, 'load');
+
+        // WHEN
+        comp.delete(sampleWithRequiredData);
+        deleteModalMock.closed.next('deleted');
+        tick();
+
+        // THEN
+        expect(ngbModal.open).toHaveBeenCalled();
+        expect(comp.load).toHaveBeenCalled();
+      }),
+    ));
+
+    it('on dismiss should call load', inject(
+      [],
+      fakeAsync(() => {
+        // GIVEN
+        jest.spyOn(comp, 'load');
+
+        // WHEN
+        comp.delete(sampleWithRequiredData);
+        deleteModalMock.closed.next();
+        tick();
+
+        // THEN
+        expect(ngbModal.open).toHaveBeenCalled();
+        expect(comp.load).not.toHaveBeenCalled();
+      }),
+    ));
   });
 });

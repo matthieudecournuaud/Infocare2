@@ -27,24 +27,10 @@
                 <constraints nullable="true" />
             </column>
             <column name="user_id" type="bigint">
-                <constraints nullable="true" />
+                <constraints nullable="true" unique="true" uniqueConstraintName="ux_application_user__user_id" />
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
-    </changeSet>
-
-    <changeSet id="20240122133738-1-relations" author="jhipster">
-
-        <createTable tableName="rel_application_user__ticket">
-            <column name="ticket_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="application_user_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-
-        <addPrimaryKey columnNames="application_user_id, ticket_id" tableName="rel_application_user__ticket"/>
     </changeSet>
 
     <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here -->

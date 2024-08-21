@@ -1,22 +1,23 @@
 import { IApplicationUser, NewApplicationUser } from './application-user.model';
 
 export const sampleWithRequiredData: IApplicationUser = {
-  id: 2474,
+  id: 3865,
 };
 
 export const sampleWithPartialData: IApplicationUser = {
-  id: 13549,
-  location: 'inviter',
-  avatar: 'lectorat corps enseignant a',
-  notes: 'longtemps crac',
+  id: 18982,
+  phoneNumber: 'personnel profession',
+  location: 'sombre',
+  avatar: 'partout',
+  notes: 'manger psitt en bas de',
 };
 
 export const sampleWithFullData: IApplicationUser = {
-  id: 16231,
-  phoneNumber: 'suggérer',
-  location: 'trop turquoise',
-  avatar: 'population du Québec même si ronron',
-  notes: 'en',
+  id: 16104,
+  phoneNumber: 'si gai spécialiste',
+  location: 'au-dessous de corps enseignant',
+  avatar: 'pin-pon',
+  notes: 'concernant',
 };
 
 export const sampleWithNewData: NewApplicationUser = {
