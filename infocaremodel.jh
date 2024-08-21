@@ -1,0 +1,139 @@
+entity Ticket {
+	title String required maxlength(200)
+    description String required maxlength(5000)
+    createdAt LocalDate required
+    resolutionDate LocalDate
+    closedAt LocalDate
+    limitDate LocalDate
+    impact String maxlength(50)
+    resolution String maxlength(5000)
+    attachments String maxlength(5000)
+}
+relationship OneToOne {
+    Ticket to ApplicationUser
+}
+
+
+entity ApplicationUser {
+	phoneNumber String maxlength(20)
+    location String maxlength(100)
+    avatar String maxlength(200)
+    notes String maxlength(500)
+}
+relationship OneToOne {
+    ApplicationUser to User with builtInEntity
+}
+
+
+entity Category {
+    name String required maxlength(50)
+    description String maxlength(500)
+    icon String maxlength(100)
+}
+relationship OneToOne {
+    Ticket{category} to Category{ticket}
+}
+
+
+entity Status {
+    name String required maxlength(50)
+    statusCode String maxlength(20) required
+    description String maxlength(500)
+    colorCode String maxlength(7)
+    nextPossibleStatus String maxlength(200)
+    isFinal Boolean
+}
+relationship OneToOne {
+    Ticket{status} to Status{ticket}
+}
+
+
+entity Priority {
+    name String required maxlength(50)
+    description String maxlength(500)
+    colorCode String maxlength(7)
+}
+relationship OneToOne {
+	Ticket{priority} to Priority{ticket}
+}
+
+
+entity Material {
+    name String required maxlength(50)
+    type String required maxlength(50)
+    purchaseDate LocalDate
+    warrantyEndDate LocalDate
+    manufacturer String maxlength(50)
+    model String maxlength(50)
+    statusMaterial String maxlength(50)
+    lastMaintenanceDate LocalDate
+    note String maxlength(500)
+    serialNumber Long
+}
+relationship OneToOne {
+	Ticket{material} to Material{ticket}
+}
+
+
+entity Company {
+    name String required maxlength(50)
+    phone String required minlength(10) maxlength(15)
+    siret Long required min(14) max(14)
+    address String required maxlength(50)
+    email String maxlength(100)
+    contactPerson String maxlength(100)
+    contactPersonPhone String maxlength(15)
+    contactPersonEmail String maxlength(100)
+    size String maxlength(50)   
+    notes String maxlength(500)
+}
+relationship OneToOne {
+	Material{company} to Company{material}
+}
+
+
+entity Comment {
+	title String required
+    type String maxlength(50)
+    visibility String maxlength(50)
+	description String
+    editedBy String required
+	editedAt LocalDate required
+    attachments String maxlength(5000)
+    responseToCommentId Long
+}
+relationship OneToMany {
+    Ticket{comment} to Comment{ticket}
+}
+
+
+entity Intervention {
+	title String
+	description String
+    createdBy String required
+	createdAt LocalDate required
+    attachments String maxlength(5000)
+	notes String maxlength(500)
+}
+relationship OneToMany {
+    Ticket{intervention} to Intervention{ticket}
+}
+
+
+entity Procedure {
+    name String
+    description String 
+    category String
+    procedureId Long
+    stepByStepGuide String maxlength(5000)
+    estimatedTime Integer
+    requiredTools String maxlength(500)
+    skillsRequired String maxlength(500)
+    safetyInstructions String maxlength(500)
+    lastReviewed LocalDate
+    reviewedBy String maxlength(50)
+    attachments String maxlength(200)
+}
+relationship OneToOne {
+    Intervention{procedure} to Procedure{intervention}
+}
