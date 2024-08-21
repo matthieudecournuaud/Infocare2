@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -15,10 +15,8 @@ import { CommentService } from '../service/comment.service';
 export class CommentDeleteDialogComponent {
   comment?: IComment;
 
-  constructor(
-    protected commentService: CommentService,
-    protected activeModal: NgbActiveModal,
-  ) {}
+  protected commentService = inject(CommentService);
+  protected activeModal = inject(NgbActiveModal);
 
   cancel(): void {
     this.activeModal.dismiss();

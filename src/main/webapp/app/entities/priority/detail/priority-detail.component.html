@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center">
   <div class="col-8">
-    @if (priority) {
+    @if (priority()) {
       <div>
         <h2 data-cy="priorityDetailsHeading"><span jhiTranslate="infocare2App.priority.detail.title">Priority</span></h2>
 
@@ -11,17 +11,21 @@
         <jhi-alert></jhi-alert>
 
         <dl class="row-md jh-entity-details">
-          <dt><span jhiTranslate="infocare2App.priority.name">Nom de la priorité: </span></dt>
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
           <dd>
-            <span>{{ priority.name }}</span>
+            <span>{{ priority()!.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="infocare2App.priority.name">Name</span></dt>
+          <dd>
+            <span>{{ priority()!.name }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.priority.description">Description</span></dt>
           <dd>
-            <span>{{ priority.description }}</span>
+            <span>{{ priority()!.description }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.priority.colorCode">Color Code</span></dt>
           <dd>
-            <span>{{ priority.colorCode }}</span>
+            <span>{{ priority()!.colorCode }}</span>
           </dd>
         </dl>
 
@@ -29,12 +33,7 @@
           <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
         </button>
 
-        <button
-          type="button"
-          [routerLink]="['/priority', priority.id, 'edit']"
-          class="btn btn-primary"
-          *jhiHasAnyAuthority="'ROLE_ADMIN,ROLE_USER'"
-        >
+        <button type="button" [routerLink]="['/priority', priority()!.id, 'edit']" class="btn btn-primary">
           <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
         </button>
       </div>

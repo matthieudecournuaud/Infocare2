@@ -45,10 +45,7 @@
                 <constraints nullable="true" />
             </column>
             <column name="company_id" type="bigint">
-                <constraints nullable="true" />
-            </column>
-            <column name="ticket_id" type="bigint">
-                <constraints nullable="true" />
+                <constraints nullable="true" unique="true" uniqueConstraintName="ux_material__company_id" />
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>

@@ -3,7 +3,6 @@
     "changelogDate": "20240122133738"
   },
   "applications": "*",
-  "entityTableName": "application_user",
   "fields": [
     {
       "fieldName": "phoneNumber",
@@ -34,17 +33,18 @@
   "relationships": [
     {
       "otherEntityName": "user",
+      "otherEntityRelationshipName": "applicationUser",
       "relationshipName": "user",
       "relationshipSide": "left",
-      "relationshipType": "many-to-one",
+      "relationshipType": "one-to-one",
       "relationshipWithBuiltInEntity": true
     },
     {
       "otherEntityName": "ticket",
       "otherEntityRelationshipName": "applicationUser",
       "relationshipName": "ticket",
-      "relationshipSide": "left",
-      "relationshipType": "many-to-many"
+      "relationshipSide": "right",
+      "relationshipType": "one-to-one"
     }
   ],
   "searchEngine": "no"

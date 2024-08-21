@@ -1,6 +1,7 @@
 package com.backend.infocare.domain;
 
 import static com.backend.infocare.domain.PriorityTestSamples.*;
+import static com.backend.infocare.domain.TicketTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.backend.infocare.web.rest.TestUtil;
@@ -20,5 +21,19 @@ class PriorityTest {
 
         priority2 = getPrioritySample2();
         assertThat(priority1).isNotEqualTo(priority2);
+    }
+
+    @Test
+    void ticketTest() {
+        Priority priority = getPriorityRandomSampleGenerator();
+        Ticket ticketBack = getTicketRandomSampleGenerator();
+
+        priority.setTicket(ticketBack);
+        assertThat(priority.getTicket()).isEqualTo(ticketBack);
+        assertThat(ticketBack.getPriority()).isEqualTo(priority);
+
+        priority.ticket(null);
+        assertThat(priority.getTicket()).isNull();
+        assertThat(ticketBack.getPriority()).isNull();
     }
 }

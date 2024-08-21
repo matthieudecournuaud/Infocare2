@@ -20,7 +20,8 @@
       "id": "ID",
       "name": "Name",
       "description": "Description",
-      "icon": "Icon"
+      "icon": "Icon",
+      "ticket": "Ticket"
     }
   }
 }

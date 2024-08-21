@@ -27,7 +27,7 @@ import tech.jhipster.web.util.ResponseUtil;
 @Transactional
 public class CommentResource {
 
-    private final Logger log = LoggerFactory.getLogger(CommentResource.class);
+    private static final Logger log = LoggerFactory.getLogger(CommentResource.class);
 
     private static final String ENTITY_NAME = "comment";
 
@@ -53,11 +53,10 @@ public class CommentResource {
         if (comment.getId() != null) {
             throw new BadRequestAlertException("A new comment cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Comment result = commentRepository.save(comment);
-        return ResponseEntity
-            .created(new URI("/api/comments/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        comment = commentRepository.save(comment);
+        return ResponseEntity.created(new URI("/api/comments/" + comment.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, comment.getId().toString()))
+            .body(comment);
     }
 
     /**
@@ -87,11 +86,10 @@ public class CommentResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Comment result = commentRepository.save(comment);
-        return ResponseEntity
-            .ok()
+        comment = commentRepository.save(comment);
+        return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, comment.getId().toString()))
-            .body(result);
+            .body(comment);
     }
 
     /**
@@ -194,8 +192,7 @@ public class CommentResource {
     public ResponseEntity<Void> deleteComment(@PathVariable("id") Long id) {
         log.debug("REST request to delete Comment : {}", id);
         commentRepository.deleteById(id);
-        return ResponseEntity
-            .noContent()
+        return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }

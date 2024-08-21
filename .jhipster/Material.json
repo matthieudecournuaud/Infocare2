@@ -3,7 +3,6 @@
     "changelogDate": "20240122134238"
   },
   "applications": "*",
-  "entityTableName": "material",
   "fields": [
     {
       "fieldName": "name",
@@ -65,14 +64,14 @@
       "otherEntityRelationshipName": "material",
       "relationshipName": "company",
       "relationshipSide": "left",
-      "relationshipType": "many-to-one"
+      "relationshipType": "one-to-one"
     },
     {
       "otherEntityName": "ticket",
       "otherEntityRelationshipName": "material",
       "relationshipName": "ticket",
       "relationshipSide": "right",
-      "relationshipType": "many-to-one"
+      "relationshipType": "one-to-one"
     }
   ],
   "searchEngine": "no"

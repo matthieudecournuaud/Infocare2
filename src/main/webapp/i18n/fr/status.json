@@ -23,7 +23,8 @@
       "description": "Description",
       "colorCode": "Color Code",
       "nextPossibleStatus": "Next Possible Status",
-      "isFinal": "Is Final"
+      "isFinal": "Is Final",
+      "ticket": "Ticket"
     }
   }
 }

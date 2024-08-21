@@ -61,10 +61,30 @@ public class Ticket implements Serializable {
     @Column(name = "attachments", length = 5000)
     private String attachments;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "ticket")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JsonIgnoreProperties(value = { "user", "ticket" }, allowSetters = true)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    private ApplicationUser applicationUser;
+
+    @JsonIgnoreProperties(value = { "ticket" }, allowSetters = true)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    private Category category;
+
+    @JsonIgnoreProperties(value = { "ticket" }, allowSetters = true)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    private Status status;
+
+    @JsonIgnoreProperties(value = { "ticket" }, allowSetters = true)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    private Priority priority;
+
     @JsonIgnoreProperties(value = { "company", "ticket" }, allowSetters = true)
-    private Set<Material> materials = new HashSet<>();
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    private Material material;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "ticket")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -75,20 +95,6 @@ public class Ticket implements Serializable {
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "procedure", "ticket" }, allowSetters = true)
     private Set<Intervention> interventions = new HashSet<>();
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Category category;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Status status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Priority priority;
-
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "tickets")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "user", "tickets" }, allowSetters = true)
-    private Set<ApplicationUser> applicationUsers = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -222,34 +228,68 @@ public class Ticket implements Serializable {
         this.attachments = attachments;
     }
 
-    public Set<Material> getMaterials() {
-        return this.materials;
+    public ApplicationUser getApplicationUser() {
+        return this.applicationUser;
     }
 
-    public void setMaterials(Set<Material> materials) {
-        if (this.materials != null) {
-            this.materials.forEach(i -> i.setTicket(null));
-        }
-        if (materials != null) {
-            materials.forEach(i -> i.setTicket(this));
-        }
-        this.materials = materials;
+    public void setApplicationUser(ApplicationUser applicationUser) {
+        this.applicationUser = applicationUser;
     }
 
-    public Ticket materials(Set<Material> materials) {
-        this.setMaterials(materials);
+    public Ticket applicationUser(ApplicationUser applicationUser) {
+        this.setApplicationUser(applicationUser);
         return this;
     }
 
-    public Ticket addMaterial(Material material) {
-        this.materials.add(material);
-        material.setTicket(this);
+    public Category getCategory() {
+        return this.category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public Ticket category(Category category) {
+        this.setCategory(category);
         return this;
     }
 
-    public Ticket removeMaterial(Material material) {
-        this.materials.remove(material);
-        material.setTicket(null);
+    public Status getStatus() {
+        return this.status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public Ticket status(Status status) {
+        this.setStatus(status);
+        return this;
+    }
+
+    public Priority getPriority() {
+        return this.priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
+    public Ticket priority(Priority priority) {
+        this.setPriority(priority);
+        return this;
+    }
+
+    public Material getMaterial() {
+        return this.material;
+    }
+
+    public void setMaterial(Material material) {
+        this.material = material;
+    }
+
+    public Ticket material(Material material) {
+        this.setMaterial(material);
         return this;
     }
 
@@ -312,76 +352,6 @@ public class Ticket implements Serializable {
     public Ticket removeIntervention(Intervention intervention) {
         this.interventions.remove(intervention);
         intervention.setTicket(null);
-        return this;
-    }
-
-    public Category getCategory() {
-        return this.category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
-
-    public Ticket category(Category category) {
-        this.setCategory(category);
-        return this;
-    }
-
-    public Status getStatus() {
-        return this.status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public Ticket status(Status status) {
-        this.setStatus(status);
-        return this;
-    }
-
-    public Priority getPriority() {
-        return this.priority;
-    }
-
-    public void setPriority(Priority priority) {
-        this.priority = priority;
-    }
-
-    public Ticket priority(Priority priority) {
-        this.setPriority(priority);
-        return this;
-    }
-
-    public Set<ApplicationUser> getApplicationUsers() {
-        return this.applicationUsers;
-    }
-
-    public void setApplicationUsers(Set<ApplicationUser> applicationUsers) {
-        if (this.applicationUsers != null) {
-            this.applicationUsers.forEach(i -> i.removeTicket(this));
-        }
-        if (applicationUsers != null) {
-            applicationUsers.forEach(i -> i.addTicket(this));
-        }
-        this.applicationUsers = applicationUsers;
-    }
-
-    public Ticket applicationUsers(Set<ApplicationUser> applicationUsers) {
-        this.setApplicationUsers(applicationUsers);
-        return this;
-    }
-
-    public Ticket addApplicationUser(ApplicationUser applicationUser) {
-        this.applicationUsers.add(applicationUser);
-        applicationUser.getTickets().add(this);
-        return this;
-    }
-
-    public Ticket removeApplicationUser(ApplicationUser applicationUser) {
-        this.applicationUsers.remove(applicationUser);
-        applicationUser.getTickets().remove(this);
         return this;
     }
 

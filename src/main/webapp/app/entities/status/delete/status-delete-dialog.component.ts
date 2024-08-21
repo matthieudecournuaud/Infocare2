@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -15,10 +15,8 @@ import { StatusService } from '../service/status.service';
 export class StatusDeleteDialogComponent {
   status?: IStatus;
 
-  constructor(
-    protected statusService: StatusService,
-    protected activeModal: NgbActiveModal,
-  ) {}
+  protected statusService = inject(StatusService);
+  protected activeModal = inject(NgbActiveModal);
 
   cancel(): void {
     this.activeModal.dismiss();

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -8,11 +8,9 @@ import SharedModule from 'app/shared/shared.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { IUser } from 'app/entities/user/user.model';
-import { UserService } from 'app/entities/user/user.service';
-import { ITicket } from 'app/entities/ticket/ticket.model';
-import { TicketService } from 'app/entities/ticket/service/ticket.service';
-import { ApplicationUserService } from '../service/application-user.service';
+import { UserService } from 'app/entities/user/service/user.service';
 import { IApplicationUser } from '../application-user.model';
+import { ApplicationUserService } from '../service/application-user.service';
 import { ApplicationUserFormService, ApplicationUserFormGroup } from './application-user-form.service';
 
 @Component({
@@ -26,21 +24,16 @@ export class ApplicationUserUpdateComponent implements OnInit {
   applicationUser: IApplicationUser | null = null;
 
   usersSharedCollection: IUser[] = [];
-  ticketsSharedCollection: ITicket[] = [];
 
+  protected applicationUserService = inject(ApplicationUserService);
+  protected applicationUserFormService = inject(ApplicationUserFormService);
+  protected userService = inject(UserService);
+  protected activatedRoute = inject(ActivatedRoute);
+
+  // eslint-disable-next-line @typescript-eslint/member-ordering
   editForm: ApplicationUserFormGroup = this.applicationUserFormService.createApplicationUserFormGroup();
 
-  constructor(
-    protected applicationUserService: ApplicationUserService,
-    protected applicationUserFormService: ApplicationUserFormService,
-    protected userService: UserService,
-    protected ticketService: TicketService,
-    protected activatedRoute: ActivatedRoute,
-  ) {}
-
   compareUser = (o1: IUser | null, o2: IUser | null): boolean => this.userService.compareUser(o1, o2);
-
-  compareTicket = (o1: ITicket | null, o2: ITicket | null): boolean => this.ticketService.compareTicket(o1, o2);
 
   ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ applicationUser }) => {
@@ -91,10 +84,6 @@ export class ApplicationUserUpdateComponent implements OnInit {
     this.applicationUserFormService.resetForm(this.editForm, applicationUser);
 
     this.usersSharedCollection = this.userService.addUserToCollectionIfMissing<IUser>(this.usersSharedCollection, applicationUser.user);
-    this.ticketsSharedCollection = this.ticketService.addTicketToCollectionIfMissing<ITicket>(
-      this.ticketsSharedCollection,
-      ...(applicationUser.tickets ?? []),
-    );
   }
 
   protected loadRelationshipsOptions(): void {
@@ -103,15 +92,5 @@ export class ApplicationUserUpdateComponent implements OnInit {
       .pipe(map((res: HttpResponse<IUser[]>) => res.body ?? []))
       .pipe(map((users: IUser[]) => this.userService.addUserToCollectionIfMissing<IUser>(users, this.applicationUser?.user)))
       .subscribe((users: IUser[]) => (this.usersSharedCollection = users));
-
-    this.ticketService
-      .query()
-      .pipe(map((res: HttpResponse<ITicket[]>) => res.body ?? []))
-      .pipe(
-        map((tickets: ITicket[]) =>
-          this.ticketService.addTicketToCollectionIfMissing<ITicket>(tickets, ...(this.applicationUser?.tickets ?? [])),
-        ),
-      )
-      .subscribe((tickets: ITicket[]) => (this.ticketsSharedCollection = tickets));
   }
 }

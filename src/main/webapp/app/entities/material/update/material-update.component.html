@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center">
   <div class="col-8">
-    <form name="editForm" role="form" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+    <form name="editForm" novalidate (ngSubmit)="save()" [formGroup]="editForm">
       <h2 id="jhi-material-heading" data-cy="MaterialCreateUpdateHeading" jhiTranslate="infocare2App.material.home.createOrEditLabel">
         Créer ou éditer un Material
       </h2>
@@ -10,13 +10,13 @@
 
         @if (editForm.controls.id.value !== null) {
           <div class="mb-3">
-            <label class="form-label" jhiTranslate="global.field.id" for="field_id">ID</label>
+            <label class="form-label" for="field_id" jhiTranslate="infocare2App.material.id">ID</label>
             <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
           </div>
         }
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.name" for="field_name">Name</label>
+          <label class="form-label" for="field_name" jhiTranslate="infocare2App.material.name">Name</label>
           <input type="text" class="form-control" name="name" id="field_name" data-cy="name" formControlName="name" />
           @if (editForm.get('name')!.invalid && (editForm.get('name')!.dirty || editForm.get('name')!.touched)) {
             <div>
@@ -24,7 +24,7 @@
                 <small class="form-text text-danger" jhiTranslate="entity.validation.required">Ce champ est obligatoire.</small>
               }
               @if (editForm.get('name')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '50' }"
                   >Ce champ doit faire moins de 50 caractères.</small
                 >
               }
@@ -33,7 +33,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.type" for="field_type">Type</label>
+          <label class="form-label" for="field_type" jhiTranslate="infocare2App.material.type">Type</label>
           <input type="text" class="form-control" name="type" id="field_type" data-cy="type" formControlName="type" />
           @if (editForm.get('type')!.invalid && (editForm.get('type')!.dirty || editForm.get('type')!.touched)) {
             <div>
@@ -41,7 +41,7 @@
                 <small class="form-text text-danger" jhiTranslate="entity.validation.required">Ce champ est obligatoire.</small>
               }
               @if (editForm.get('type')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '50' }"
                   >Ce champ doit faire moins de 50 caractères.</small
                 >
               }
@@ -50,7 +50,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.purchaseDate" for="field_purchaseDate">Purchase Date</label>
+          <label class="form-label" for="field_purchaseDate" jhiTranslate="infocare2App.material.purchaseDate">Purchase Date</label>
           <div class="input-group">
             <input
               id="field_purchaseDate"
@@ -69,7 +69,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.warrantyEndDate" for="field_warrantyEndDate"
+          <label class="form-label" for="field_warrantyEndDate" jhiTranslate="infocare2App.material.warrantyEndDate"
             >Warranty End Date</label
           >
           <div class="input-group">
@@ -90,7 +90,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.manufacturer" for="field_manufacturer">Manufacturer</label>
+          <label class="form-label" for="field_manufacturer" jhiTranslate="infocare2App.material.manufacturer">Manufacturer</label>
           <input
             type="text"
             class="form-control"
@@ -102,7 +102,7 @@
           @if (editForm.get('manufacturer')!.invalid && (editForm.get('manufacturer')!.dirty || editForm.get('manufacturer')!.touched)) {
             <div>
               @if (editForm.get('manufacturer')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '50' }"
                   >Ce champ doit faire moins de 50 caractères.</small
                 >
               }
@@ -111,12 +111,12 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.model" for="field_model">Model</label>
+          <label class="form-label" for="field_model" jhiTranslate="infocare2App.material.model">Model</label>
           <input type="text" class="form-control" name="model" id="field_model" data-cy="model" formControlName="model" />
           @if (editForm.get('model')!.invalid && (editForm.get('model')!.dirty || editForm.get('model')!.touched)) {
             <div>
               @if (editForm.get('model')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '50' }"
                   >Ce champ doit faire moins de 50 caractères.</small
                 >
               }
@@ -125,7 +125,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.statusMaterial" for="field_statusMaterial">Status Material</label>
+          <label class="form-label" for="field_statusMaterial" jhiTranslate="infocare2App.material.statusMaterial">Status Material</label>
           <input
             type="text"
             class="form-control"
@@ -139,7 +139,7 @@
           ) {
             <div>
               @if (editForm.get('statusMaterial')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 50 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '50' }"
                   >Ce champ doit faire moins de 50 caractères.</small
                 >
               }
@@ -148,7 +148,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.lastMaintenanceDate" for="field_lastMaintenanceDate"
+          <label class="form-label" for="field_lastMaintenanceDate" jhiTranslate="infocare2App.material.lastMaintenanceDate"
             >Last Maintenance Date</label
           >
           <div class="input-group">
@@ -169,12 +169,12 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.note" for="field_note">Note</label>
+          <label class="form-label" for="field_note" jhiTranslate="infocare2App.material.note">Note</label>
           <input type="text" class="form-control" name="note" id="field_note" data-cy="note" formControlName="note" />
           @if (editForm.get('note')!.invalid && (editForm.get('note')!.dirty || editForm.get('note')!.touched)) {
             <div>
               @if (editForm.get('note')?.errors?.maxlength) {
-                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: 500 }"
+                <small class="form-text text-danger" jhiTranslate="entity.validation.maxlength" [translateValues]="{ max: '500' }"
                   >Ce champ doit faire moins de 500 caractères.</small
                 >
               }
@@ -183,7 +183,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.serialNumber" for="field_serialNumber">Serial Number</label>
+          <label class="form-label" for="field_serialNumber" jhiTranslate="infocare2App.material.serialNumber">Serial Number</label>
           <input
             type="number"
             class="form-control"
@@ -195,7 +195,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.company" for="field_company">Company</label>
+          <label class="form-label" for="field_company" jhiTranslate="infocare2App.material.company">Company</label>
           <select
             class="form-control"
             id="field_company"
@@ -205,25 +205,8 @@
             [compareWith]="compareCompany"
           >
             <option [ngValue]="null"></option>
-            @for (companyOption of companiesSharedCollection; track $index) {
+            @for (companyOption of companiesCollection; track $index) {
               <option [ngValue]="companyOption">{{ companyOption.id }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label" jhiTranslate="infocare2App.material.ticket" for="field_ticket">Ticket</label>
-          <select
-            class="form-control"
-            id="field_ticket"
-            data-cy="ticket"
-            name="ticket"
-            formControlName="ticket"
-            [compareWith]="compareTicket"
-          >
-            <option [ngValue]="null"></option>
-            @for (ticketOption of ticketsSharedCollection; track $index) {
-              <option [ngValue]="ticketOption">{{ ticketOption.id }}</option>
             }
           </select>
         </div>

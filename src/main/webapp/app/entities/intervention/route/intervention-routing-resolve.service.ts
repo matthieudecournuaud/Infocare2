@@ -7,7 +7,7 @@ import { mergeMap } from 'rxjs/operators';
 import { IIntervention } from '../intervention.model';
 import { InterventionService } from '../service/intervention.service';
 
-export const interventionResolve = (route: ActivatedRouteSnapshot): Observable<null | IIntervention> => {
+const interventionResolve = (route: ActivatedRouteSnapshot): Observable<null | IIntervention> => {
   const id = route.params['id'];
   if (id) {
     return inject(InterventionService)

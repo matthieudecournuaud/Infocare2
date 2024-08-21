@@ -1,5 +1,7 @@
 package com.backend.infocare.web.rest;
 
+import static com.backend.infocare.domain.CategoryAsserts.*;
+import static com.backend.infocare.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -8,10 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.backend.infocare.IntegrationTest;
 import com.backend.infocare.domain.Category;
 import com.backend.infocare.repository.CategoryRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,9 @@ class CategoryResourceIT {
     private static AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
     @Autowired
+    private ObjectMapper om;
+
+    @Autowired
     private CategoryRepository categoryRepository;
 
     @Autowired
@@ -54,6 +60,8 @@ class CategoryResourceIT {
     private MockMvc restCategoryMockMvc;
 
     private Category category;
+
+    private Category insertedCategory;
 
     /**
      * Create an entity for this test.
@@ -82,22 +90,34 @@ class CategoryResourceIT {
         category = createEntity(em);
     }
 
+    @AfterEach
+    public void cleanup() {
+        if (insertedCategory != null) {
+            categoryRepository.delete(insertedCategory);
+            insertedCategory = null;
+        }
+    }
+
     @Test
     @Transactional
     void createCategory() throws Exception {
-        int databaseSizeBeforeCreate = categoryRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Category
-        restCategoryMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(category)))
-            .andExpect(status().isCreated());
+        var returnedCategory = om.readValue(
+            restCategoryMockMvc
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(category)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            Category.class
+        );
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeCreate + 1);
-        Category testCategory = categoryList.get(categoryList.size() - 1);
-        assertThat(testCategory.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testCategory.getDescription()).isEqualTo(DEFAULT_DESCRIPTION);
-        assertThat(testCategory.getIcon()).isEqualTo(DEFAULT_ICON);
+        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        assertCategoryUpdatableFieldsEquals(returnedCategory, getPersistedCategory(returnedCategory));
+
+        insertedCategory = returnedCategory;
     }
 
     @Test
@@ -106,40 +126,38 @@ class CategoryResourceIT {
         // Create the Category with an existing ID
         category.setId(1L);
 
-        int databaseSizeBeforeCreate = categoryRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restCategoryMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(category)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(category)))
             .andExpect(status().isBadRequest());
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeCreate);
+        assertSameRepositoryCount(databaseSizeBeforeCreate);
     }
 
     @Test
     @Transactional
     void checkNameIsRequired() throws Exception {
-        int databaseSizeBeforeTest = categoryRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         category.setName(null);
 
         // Create the Category, which fails.
 
         restCategoryMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(category)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(category)))
             .andExpect(status().isBadRequest());
 
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void getAllCategories() throws Exception {
         // Initialize the database
-        categoryRepository.saveAndFlush(category);
+        insertedCategory = categoryRepository.saveAndFlush(category);
 
         // Get all the categoryList
         restCategoryMockMvc
@@ -156,7 +174,7 @@ class CategoryResourceIT {
     @Transactional
     void getCategory() throws Exception {
         // Initialize the database
-        categoryRepository.saveAndFlush(category);
+        insertedCategory = categoryRepository.saveAndFlush(category);
 
         // Get the category
         restCategoryMockMvc
@@ -180,9 +198,9 @@ class CategoryResourceIT {
     @Transactional
     void putExistingCategory() throws Exception {
         // Initialize the database
-        categoryRepository.saveAndFlush(category);
+        insertedCategory = categoryRepository.saveAndFlush(category);
 
-        int databaseSizeBeforeUpdate = categoryRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the category
         Category updatedCategory = categoryRepository.findById(category.getId()).orElseThrow();
@@ -194,43 +212,36 @@ class CategoryResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, updatedCategory.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(updatedCategory))
+                    .content(om.writeValueAsBytes(updatedCategory))
             )
             .andExpect(status().isOk());
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeUpdate);
-        Category testCategory = categoryList.get(categoryList.size() - 1);
-        assertThat(testCategory.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testCategory.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testCategory.getIcon()).isEqualTo(UPDATED_ICON);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPersistedCategoryToMatchAllProperties(updatedCategory);
     }
 
     @Test
     @Transactional
     void putNonExistingCategory() throws Exception {
-        int databaseSizeBeforeUpdate = categoryRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         category.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCategoryMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, category.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(category))
+                put(ENTITY_API_URL_ID, category.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(category))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithIdMismatchCategory() throws Exception {
-        int databaseSizeBeforeUpdate = categoryRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         category.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -238,38 +249,36 @@ class CategoryResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(category))
+                    .content(om.writeValueAsBytes(category))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithMissingIdPathParamCategory() throws Exception {
-        int databaseSizeBeforeUpdate = categoryRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         category.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCategoryMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(category)))
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(category)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void partialUpdateCategoryWithPatch() throws Exception {
         // Initialize the database
-        categoryRepository.saveAndFlush(category);
+        insertedCategory = categoryRepository.saveAndFlush(category);
 
-        int databaseSizeBeforeUpdate = categoryRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the category using partial update
         Category partialUpdatedCategory = new Category();
@@ -281,26 +290,23 @@ class CategoryResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedCategory.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedCategory))
+                    .content(om.writeValueAsBytes(partialUpdatedCategory))
             )
             .andExpect(status().isOk());
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeUpdate);
-        Category testCategory = categoryList.get(categoryList.size() - 1);
-        assertThat(testCategory.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testCategory.getDescription()).isEqualTo(DEFAULT_DESCRIPTION);
-        assertThat(testCategory.getIcon()).isEqualTo(UPDATED_ICON);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertCategoryUpdatableFieldsEquals(createUpdateProxyForBean(partialUpdatedCategory, category), getPersistedCategory(category));
     }
 
     @Test
     @Transactional
     void fullUpdateCategoryWithPatch() throws Exception {
         // Initialize the database
-        categoryRepository.saveAndFlush(category);
+        insertedCategory = categoryRepository.saveAndFlush(category);
 
-        int databaseSizeBeforeUpdate = categoryRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the category using partial update
         Category partialUpdatedCategory = new Category();
@@ -312,23 +318,20 @@ class CategoryResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedCategory.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedCategory))
+                    .content(om.writeValueAsBytes(partialUpdatedCategory))
             )
             .andExpect(status().isOk());
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeUpdate);
-        Category testCategory = categoryList.get(categoryList.size() - 1);
-        assertThat(testCategory.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testCategory.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testCategory.getIcon()).isEqualTo(UPDATED_ICON);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertCategoryUpdatableFieldsEquals(partialUpdatedCategory, getPersistedCategory(partialUpdatedCategory));
     }
 
     @Test
     @Transactional
     void patchNonExistingCategory() throws Exception {
-        int databaseSizeBeforeUpdate = categoryRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         category.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
@@ -336,19 +339,18 @@ class CategoryResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, category.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(category))
+                    .content(om.writeValueAsBytes(category))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithIdMismatchCategory() throws Exception {
-        int databaseSizeBeforeUpdate = categoryRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         category.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -356,38 +358,36 @@ class CategoryResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(category))
+                    .content(om.writeValueAsBytes(category))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithMissingIdPathParamCategory() throws Exception {
-        int databaseSizeBeforeUpdate = categoryRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         category.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCategoryMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(category)))
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(category)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Category in the database
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void deleteCategory() throws Exception {
         // Initialize the database
-        categoryRepository.saveAndFlush(category);
+        insertedCategory = categoryRepository.saveAndFlush(category);
 
-        int databaseSizeBeforeDelete = categoryRepository.findAll().size();
+        long databaseSizeBeforeDelete = getRepositoryCount();
 
         // Delete the category
         restCategoryMockMvc
@@ -395,7 +395,34 @@ class CategoryResourceIT {
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
-        List<Category> categoryList = categoryRepository.findAll();
-        assertThat(categoryList).hasSize(databaseSizeBeforeDelete - 1);
+        assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
+    }
+
+    protected long getRepositoryCount() {
+        return categoryRepository.count();
+    }
+
+    protected void assertIncrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore + 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertDecrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore - 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertSameRepositoryCount(long countBefore) {
+        assertThat(countBefore).isEqualTo(getRepositoryCount());
+    }
+
+    protected Category getPersistedCategory(Category category) {
+        return categoryRepository.findById(category.getId()).orElseThrow();
+    }
+
+    protected void assertPersistedCategoryToMatchAllProperties(Category expectedCategory) {
+        assertCategoryAllPropertiesEquals(expectedCategory, getPersistedCategory(expectedCategory));
+    }
+
+    protected void assertPersistedCategoryToMatchUpdatableProperties(Category expectedCategory) {
+        assertCategoryAllUpdatablePropertiesEquals(expectedCategory, getPersistedCategory(expectedCategory));
     }
 }

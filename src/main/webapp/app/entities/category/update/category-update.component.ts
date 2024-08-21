@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -21,13 +21,12 @@ export class CategoryUpdateComponent implements OnInit {
   isSaving = false;
   category: ICategory | null = null;
 
-  editForm: CategoryFormGroup = this.categoryFormService.createCategoryFormGroup();
+  protected categoryService = inject(CategoryService);
+  protected categoryFormService = inject(CategoryFormService);
+  protected activatedRoute = inject(ActivatedRoute);
 
-  constructor(
-    protected categoryService: CategoryService,
-    protected categoryFormService: CategoryFormService,
-    protected activatedRoute: ActivatedRoute,
-  ) {}
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  editForm: CategoryFormGroup = this.categoryFormService.createCategoryFormGroup();
 
   ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ category }) => {

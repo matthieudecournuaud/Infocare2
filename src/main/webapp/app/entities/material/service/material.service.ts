@@ -1,8 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-import { map } from 'rxjs/operators';
+import { map, Observable } from 'rxjs';
 
 import dayjs from 'dayjs/esm';
 
@@ -31,12 +29,10 @@ export type EntityArrayResponseType = HttpResponse<IMaterial[]>;
 
 @Injectable({ providedIn: 'root' })
 export class MaterialService {
-  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/materials');
+  protected http = inject(HttpClient);
+  protected applicationConfigService = inject(ApplicationConfigService);
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/materials');
 
   create(material: NewMaterial): Observable<EntityResponseType> {
     const copy = this.convertDateFromClient(material);
@@ -90,7 +86,7 @@ export class MaterialService {
   ): Type[] {
     const materials: Type[] = materialsToCheck.filter(isPresent);
     if (materials.length > 0) {
-      const materialCollectionIdentifiers = materialCollection.map(materialItem => this.getMaterialIdentifier(materialItem)!);
+      const materialCollectionIdentifiers = materialCollection.map(materialItem => this.getMaterialIdentifier(materialItem));
       const materialsToAdd = materials.filter(materialItem => {
         const materialIdentifier = this.getMaterialIdentifier(materialItem);
         if (materialCollectionIdentifiers.includes(materialIdentifier)) {

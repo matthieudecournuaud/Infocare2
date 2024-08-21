@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -28,15 +28,14 @@ export class InterventionUpdateComponent implements OnInit {
   proceduresCollection: IProcedure[] = [];
   ticketsSharedCollection: ITicket[] = [];
 
-  editForm: InterventionFormGroup = this.interventionFormService.createInterventionFormGroup();
+  protected interventionService = inject(InterventionService);
+  protected interventionFormService = inject(InterventionFormService);
+  protected procedureService = inject(ProcedureService);
+  protected ticketService = inject(TicketService);
+  protected activatedRoute = inject(ActivatedRoute);
 
-  constructor(
-    protected interventionService: InterventionService,
-    protected interventionFormService: InterventionFormService,
-    protected procedureService: ProcedureService,
-    protected ticketService: TicketService,
-    protected activatedRoute: ActivatedRoute,
-  ) {}
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  editForm: InterventionFormGroup = this.interventionFormService.createInterventionFormGroup();
 
   compareProcedure = (o1: IProcedure | null, o2: IProcedure | null): boolean => this.procedureService.compareProcedure(o1, o2);
 

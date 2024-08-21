@@ -1,5 +1,7 @@
 package com.backend.infocare.web.rest;
 
+import static com.backend.infocare.domain.CompanyAsserts.*;
+import static com.backend.infocare.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -8,10 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.backend.infocare.IntegrationTest;
 import com.backend.infocare.domain.Company;
 import com.backend.infocare.repository.CompanyRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +38,8 @@ class CompanyResourceIT {
     private static final String DEFAULT_PHONE = "AAAAAAAAAA";
     private static final String UPDATED_PHONE = "BBBBBBBBBB";
 
-    private static final String DEFAULT_SIRET = "AAAAAAAAAAAAAA";
-    private static final String UPDATED_SIRET = "BBBBBBBBBBBBBB";
+    private static final Long DEFAULT_SIRET = 14L;
+    private static final Long UPDATED_SIRET = 15L;
 
     private static final String DEFAULT_ADDRESS = "AAAAAAAAAA";
     private static final String UPDATED_ADDRESS = "BBBBBBBBBB";
@@ -66,6 +69,9 @@ class CompanyResourceIT {
     private static AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
     @Autowired
+    private ObjectMapper om;
+
+    @Autowired
     private CompanyRepository companyRepository;
 
     @Autowired
@@ -75,6 +81,8 @@ class CompanyResourceIT {
     private MockMvc restCompanyMockMvc;
 
     private Company company;
+
+    private Company insertedCompany;
 
     /**
      * Create an entity for this test.
@@ -123,29 +131,34 @@ class CompanyResourceIT {
         company = createEntity(em);
     }
 
+    @AfterEach
+    public void cleanup() {
+        if (insertedCompany != null) {
+            companyRepository.delete(insertedCompany);
+            insertedCompany = null;
+        }
+    }
+
     @Test
     @Transactional
     void createCompany() throws Exception {
-        int databaseSizeBeforeCreate = companyRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Company
-        restCompanyMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(company)))
-            .andExpect(status().isCreated());
+        var returnedCompany = om.readValue(
+            restCompanyMockMvc
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(company)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            Company.class
+        );
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeCreate + 1);
-        Company testCompany = companyList.get(companyList.size() - 1);
-        assertThat(testCompany.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testCompany.getPhone()).isEqualTo(DEFAULT_PHONE);
-        assertThat(testCompany.getSiret()).isEqualTo(DEFAULT_SIRET);
-        assertThat(testCompany.getAddress()).isEqualTo(DEFAULT_ADDRESS);
-        assertThat(testCompany.getEmail()).isEqualTo(DEFAULT_EMAIL);
-        assertThat(testCompany.getContactPerson()).isEqualTo(DEFAULT_CONTACT_PERSON);
-        assertThat(testCompany.getContactPersonPhone()).isEqualTo(DEFAULT_CONTACT_PERSON_PHONE);
-        assertThat(testCompany.getContactPersonEmail()).isEqualTo(DEFAULT_CONTACT_PERSON_EMAIL);
-        assertThat(testCompany.getSize()).isEqualTo(DEFAULT_SIZE);
-        assertThat(testCompany.getNotes()).isEqualTo(DEFAULT_NOTES);
+        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        assertCompanyUpdatableFieldsEquals(returnedCompany, getPersistedCompany(returnedCompany));
+
+        insertedCompany = returnedCompany;
     }
 
     @Test
@@ -154,91 +167,86 @@ class CompanyResourceIT {
         // Create the Company with an existing ID
         company.setId(1L);
 
-        int databaseSizeBeforeCreate = companyRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restCompanyMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(company)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(company)))
             .andExpect(status().isBadRequest());
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeCreate);
+        assertSameRepositoryCount(databaseSizeBeforeCreate);
     }
 
     @Test
     @Transactional
     void checkNameIsRequired() throws Exception {
-        int databaseSizeBeforeTest = companyRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         company.setName(null);
 
         // Create the Company, which fails.
 
         restCompanyMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(company)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(company)))
             .andExpect(status().isBadRequest());
 
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void checkPhoneIsRequired() throws Exception {
-        int databaseSizeBeforeTest = companyRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         company.setPhone(null);
 
         // Create the Company, which fails.
 
         restCompanyMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(company)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(company)))
             .andExpect(status().isBadRequest());
 
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void checkSiretIsRequired() throws Exception {
-        int databaseSizeBeforeTest = companyRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         company.setSiret(null);
 
         // Create the Company, which fails.
 
         restCompanyMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(company)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(company)))
             .andExpect(status().isBadRequest());
 
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void checkAddressIsRequired() throws Exception {
-        int databaseSizeBeforeTest = companyRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         company.setAddress(null);
 
         // Create the Company, which fails.
 
         restCompanyMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(company)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(company)))
             .andExpect(status().isBadRequest());
 
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void getAllCompanies() throws Exception {
         // Initialize the database
-        companyRepository.saveAndFlush(company);
+        insertedCompany = companyRepository.saveAndFlush(company);
 
         // Get all the companyList
         restCompanyMockMvc
@@ -248,7 +256,7 @@ class CompanyResourceIT {
             .andExpect(jsonPath("$.[*].id").value(hasItem(company.getId().intValue())))
             .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
             .andExpect(jsonPath("$.[*].phone").value(hasItem(DEFAULT_PHONE)))
-            .andExpect(jsonPath("$.[*].siret").value(hasItem(DEFAULT_SIRET)))
+            .andExpect(jsonPath("$.[*].siret").value(hasItem(DEFAULT_SIRET.intValue())))
             .andExpect(jsonPath("$.[*].address").value(hasItem(DEFAULT_ADDRESS)))
             .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL)))
             .andExpect(jsonPath("$.[*].contactPerson").value(hasItem(DEFAULT_CONTACT_PERSON)))
@@ -262,7 +270,7 @@ class CompanyResourceIT {
     @Transactional
     void getCompany() throws Exception {
         // Initialize the database
-        companyRepository.saveAndFlush(company);
+        insertedCompany = companyRepository.saveAndFlush(company);
 
         // Get the company
         restCompanyMockMvc
@@ -272,7 +280,7 @@ class CompanyResourceIT {
             .andExpect(jsonPath("$.id").value(company.getId().intValue()))
             .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
             .andExpect(jsonPath("$.phone").value(DEFAULT_PHONE))
-            .andExpect(jsonPath("$.siret").value(DEFAULT_SIRET))
+            .andExpect(jsonPath("$.siret").value(DEFAULT_SIRET.intValue()))
             .andExpect(jsonPath("$.address").value(DEFAULT_ADDRESS))
             .andExpect(jsonPath("$.email").value(DEFAULT_EMAIL))
             .andExpect(jsonPath("$.contactPerson").value(DEFAULT_CONTACT_PERSON))
@@ -293,9 +301,9 @@ class CompanyResourceIT {
     @Transactional
     void putExistingCompany() throws Exception {
         // Initialize the database
-        companyRepository.saveAndFlush(company);
+        insertedCompany = companyRepository.saveAndFlush(company);
 
-        int databaseSizeBeforeUpdate = companyRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the company
         Company updatedCompany = companyRepository.findById(company.getId()).orElseThrow();
@@ -317,50 +325,34 @@ class CompanyResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, updatedCompany.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(updatedCompany))
+                    .content(om.writeValueAsBytes(updatedCompany))
             )
             .andExpect(status().isOk());
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeUpdate);
-        Company testCompany = companyList.get(companyList.size() - 1);
-        assertThat(testCompany.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testCompany.getPhone()).isEqualTo(UPDATED_PHONE);
-        assertThat(testCompany.getSiret()).isEqualTo(UPDATED_SIRET);
-        assertThat(testCompany.getAddress()).isEqualTo(UPDATED_ADDRESS);
-        assertThat(testCompany.getEmail()).isEqualTo(UPDATED_EMAIL);
-        assertThat(testCompany.getContactPerson()).isEqualTo(UPDATED_CONTACT_PERSON);
-        assertThat(testCompany.getContactPersonPhone()).isEqualTo(UPDATED_CONTACT_PERSON_PHONE);
-        assertThat(testCompany.getContactPersonEmail()).isEqualTo(UPDATED_CONTACT_PERSON_EMAIL);
-        assertThat(testCompany.getSize()).isEqualTo(UPDATED_SIZE);
-        assertThat(testCompany.getNotes()).isEqualTo(UPDATED_NOTES);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPersistedCompanyToMatchAllProperties(updatedCompany);
     }
 
     @Test
     @Transactional
     void putNonExistingCompany() throws Exception {
-        int databaseSizeBeforeUpdate = companyRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         company.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCompanyMockMvc
-            .perform(
-                put(ENTITY_API_URL_ID, company.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(company))
-            )
+            .perform(put(ENTITY_API_URL_ID, company.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(company)))
             .andExpect(status().isBadRequest());
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithIdMismatchCompany() throws Exception {
-        int databaseSizeBeforeUpdate = companyRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         company.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -368,38 +360,36 @@ class CompanyResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(company))
+                    .content(om.writeValueAsBytes(company))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithMissingIdPathParamCompany() throws Exception {
-        int databaseSizeBeforeUpdate = companyRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         company.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCompanyMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(company)))
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(company)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void partialUpdateCompanyWithPatch() throws Exception {
         // Initialize the database
-        companyRepository.saveAndFlush(company);
+        insertedCompany = companyRepository.saveAndFlush(company);
 
-        int databaseSizeBeforeUpdate = companyRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the company using partial update
         Company partialUpdatedCompany = new Company();
@@ -411,33 +401,23 @@ class CompanyResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedCompany.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedCompany))
+                    .content(om.writeValueAsBytes(partialUpdatedCompany))
             )
             .andExpect(status().isOk());
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeUpdate);
-        Company testCompany = companyList.get(companyList.size() - 1);
-        assertThat(testCompany.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testCompany.getPhone()).isEqualTo(DEFAULT_PHONE);
-        assertThat(testCompany.getSiret()).isEqualTo(UPDATED_SIRET);
-        assertThat(testCompany.getAddress()).isEqualTo(DEFAULT_ADDRESS);
-        assertThat(testCompany.getEmail()).isEqualTo(UPDATED_EMAIL);
-        assertThat(testCompany.getContactPerson()).isEqualTo(DEFAULT_CONTACT_PERSON);
-        assertThat(testCompany.getContactPersonPhone()).isEqualTo(UPDATED_CONTACT_PERSON_PHONE);
-        assertThat(testCompany.getContactPersonEmail()).isEqualTo(DEFAULT_CONTACT_PERSON_EMAIL);
-        assertThat(testCompany.getSize()).isEqualTo(UPDATED_SIZE);
-        assertThat(testCompany.getNotes()).isEqualTo(DEFAULT_NOTES);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertCompanyUpdatableFieldsEquals(createUpdateProxyForBean(partialUpdatedCompany, company), getPersistedCompany(company));
     }
 
     @Test
     @Transactional
     void fullUpdateCompanyWithPatch() throws Exception {
         // Initialize the database
-        companyRepository.saveAndFlush(company);
+        insertedCompany = companyRepository.saveAndFlush(company);
 
-        int databaseSizeBeforeUpdate = companyRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the company using partial update
         Company partialUpdatedCompany = new Company();
@@ -459,50 +439,37 @@ class CompanyResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedCompany.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedCompany))
+                    .content(om.writeValueAsBytes(partialUpdatedCompany))
             )
             .andExpect(status().isOk());
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeUpdate);
-        Company testCompany = companyList.get(companyList.size() - 1);
-        assertThat(testCompany.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testCompany.getPhone()).isEqualTo(UPDATED_PHONE);
-        assertThat(testCompany.getSiret()).isEqualTo(UPDATED_SIRET);
-        assertThat(testCompany.getAddress()).isEqualTo(UPDATED_ADDRESS);
-        assertThat(testCompany.getEmail()).isEqualTo(UPDATED_EMAIL);
-        assertThat(testCompany.getContactPerson()).isEqualTo(UPDATED_CONTACT_PERSON);
-        assertThat(testCompany.getContactPersonPhone()).isEqualTo(UPDATED_CONTACT_PERSON_PHONE);
-        assertThat(testCompany.getContactPersonEmail()).isEqualTo(UPDATED_CONTACT_PERSON_EMAIL);
-        assertThat(testCompany.getSize()).isEqualTo(UPDATED_SIZE);
-        assertThat(testCompany.getNotes()).isEqualTo(UPDATED_NOTES);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertCompanyUpdatableFieldsEquals(partialUpdatedCompany, getPersistedCompany(partialUpdatedCompany));
     }
 
     @Test
     @Transactional
     void patchNonExistingCompany() throws Exception {
-        int databaseSizeBeforeUpdate = companyRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         company.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCompanyMockMvc
             .perform(
-                patch(ENTITY_API_URL_ID, company.getId())
-                    .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(company))
+                patch(ENTITY_API_URL_ID, company.getId()).contentType("application/merge-patch+json").content(om.writeValueAsBytes(company))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithIdMismatchCompany() throws Exception {
-        int databaseSizeBeforeUpdate = companyRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         company.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -510,38 +477,36 @@ class CompanyResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(company))
+                    .content(om.writeValueAsBytes(company))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithMissingIdPathParamCompany() throws Exception {
-        int databaseSizeBeforeUpdate = companyRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         company.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restCompanyMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(company)))
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(company)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Company in the database
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void deleteCompany() throws Exception {
         // Initialize the database
-        companyRepository.saveAndFlush(company);
+        insertedCompany = companyRepository.saveAndFlush(company);
 
-        int databaseSizeBeforeDelete = companyRepository.findAll().size();
+        long databaseSizeBeforeDelete = getRepositoryCount();
 
         // Delete the company
         restCompanyMockMvc
@@ -549,7 +514,34 @@ class CompanyResourceIT {
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
-        List<Company> companyList = companyRepository.findAll();
-        assertThat(companyList).hasSize(databaseSizeBeforeDelete - 1);
+        assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
+    }
+
+    protected long getRepositoryCount() {
+        return companyRepository.count();
+    }
+
+    protected void assertIncrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore + 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertDecrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore - 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertSameRepositoryCount(long countBefore) {
+        assertThat(countBefore).isEqualTo(getRepositoryCount());
+    }
+
+    protected Company getPersistedCompany(Company company) {
+        return companyRepository.findById(company.getId()).orElseThrow();
+    }
+
+    protected void assertPersistedCompanyToMatchAllProperties(Company expectedCompany) {
+        assertCompanyAllPropertiesEquals(expectedCompany, getPersistedCompany(expectedCompany));
+    }
+
+    protected void assertPersistedCompanyToMatchUpdatableProperties(Company expectedCompany) {
+        assertCompanyAllUpdatablePropertiesEquals(expectedCompany, getPersistedCompany(expectedCompany));
     }
 }

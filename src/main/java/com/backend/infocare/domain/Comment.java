@@ -56,7 +56,7 @@ public class Comment implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(
-        value = { "materials", "comments", "interventions", "category", "status", "priority", "applicationUsers" },
+        value = { "applicationUser", "category", "status", "priority", "material", "comments", "interventions" },
         allowSetters = true
     )
     private Ticket ticket;

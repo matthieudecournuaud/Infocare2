@@ -27,7 +27,7 @@ import tech.jhipster.web.util.ResponseUtil;
 @Transactional
 public class InterventionResource {
 
-    private final Logger log = LoggerFactory.getLogger(InterventionResource.class);
+    private static final Logger log = LoggerFactory.getLogger(InterventionResource.class);
 
     private static final String ENTITY_NAME = "intervention";
 
@@ -53,11 +53,10 @@ public class InterventionResource {
         if (intervention.getId() != null) {
             throw new BadRequestAlertException("A new intervention cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Intervention result = interventionRepository.save(intervention);
-        return ResponseEntity
-            .created(new URI("/api/interventions/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        intervention = interventionRepository.save(intervention);
+        return ResponseEntity.created(new URI("/api/interventions/" + intervention.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, intervention.getId().toString()))
+            .body(intervention);
     }
 
     /**
@@ -87,11 +86,10 @@ public class InterventionResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Intervention result = interventionRepository.save(intervention);
-        return ResponseEntity
-            .ok()
+        intervention = interventionRepository.save(intervention);
+        return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, intervention.getId().toString()))
-            .body(result);
+            .body(intervention);
     }
 
     /**
@@ -188,8 +186,7 @@ public class InterventionResource {
     public ResponseEntity<Void> deleteIntervention(@PathVariable("id") Long id) {
         log.debug("REST request to delete Intervention : {}", id);
         interventionRepository.deleteById(id);
-        return ResponseEntity
-            .noContent()
+        return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }

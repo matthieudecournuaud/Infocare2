@@ -24,7 +24,7 @@ class CommentTest {
     }
 
     @Test
-    void ticketTest() throws Exception {
+    void ticketTest() {
         Comment comment = getCommentRandomSampleGenerator();
         Ticket ticketBack = getTicketRandomSampleGenerator();
 

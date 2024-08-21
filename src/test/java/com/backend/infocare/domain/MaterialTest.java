@@ -25,7 +25,7 @@ class MaterialTest {
     }
 
     @Test
-    void companyTest() throws Exception {
+    void companyTest() {
         Material material = getMaterialRandomSampleGenerator();
         Company companyBack = getCompanyRandomSampleGenerator();
 
@@ -37,14 +37,16 @@ class MaterialTest {
     }
 
     @Test
-    void ticketTest() throws Exception {
+    void ticketTest() {
         Material material = getMaterialRandomSampleGenerator();
         Ticket ticketBack = getTicketRandomSampleGenerator();
 
         material.setTicket(ticketBack);
         assertThat(material.getTicket()).isEqualTo(ticketBack);
+        assertThat(ticketBack.getMaterial()).isEqualTo(material);
 
         material.ticket(null);
         assertThat(material.getTicket()).isNull();
+        assertThat(ticketBack.getMaterial()).isNull();
     }
 }

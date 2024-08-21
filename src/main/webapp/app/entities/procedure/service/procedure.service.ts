@@ -1,8 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-import { map } from 'rxjs/operators';
+import { map, Observable } from 'rxjs';
 
 import dayjs from 'dayjs/esm';
 
@@ -29,12 +27,10 @@ export type EntityArrayResponseType = HttpResponse<IProcedure[]>;
 
 @Injectable({ providedIn: 'root' })
 export class ProcedureService {
-  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/procedures');
+  protected http = inject(HttpClient);
+  protected applicationConfigService = inject(ApplicationConfigService);
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/procedures');
 
   create(procedure: NewProcedure): Observable<EntityResponseType> {
     const copy = this.convertDateFromClient(procedure);
@@ -88,7 +84,7 @@ export class ProcedureService {
   ): Type[] {
     const procedures: Type[] = proceduresToCheck.filter(isPresent);
     if (procedures.length > 0) {
-      const procedureCollectionIdentifiers = procedureCollection.map(procedureItem => this.getProcedureIdentifier(procedureItem)!);
+      const procedureCollectionIdentifiers = procedureCollection.map(procedureItem => this.getProcedureIdentifier(procedureItem));
       const proceduresToAdd = procedures.filter(procedureItem => {
         const procedureIdentifier = this.getProcedureIdentifier(procedureItem);
         if (procedureCollectionIdentifiers.includes(procedureIdentifier)) {

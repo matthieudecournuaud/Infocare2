@@ -7,7 +7,7 @@ import { mergeMap } from 'rxjs/operators';
 import { ICompany } from '../company.model';
 import { CompanyService } from '../service/company.service';
 
-export const companyResolve = (route: ActivatedRouteSnapshot): Observable<null | ICompany> => {
+const companyResolve = (route: ActivatedRouteSnapshot): Observable<null | ICompany> => {
   const id = route.params['id'];
   if (id) {
     return inject(CompanyService)

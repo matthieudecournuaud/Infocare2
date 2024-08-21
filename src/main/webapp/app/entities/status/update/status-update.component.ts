@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -21,13 +21,12 @@ export class StatusUpdateComponent implements OnInit {
   isSaving = false;
   status: IStatus | null = null;
 
-  editForm: StatusFormGroup = this.statusFormService.createStatusFormGroup();
+  protected statusService = inject(StatusService);
+  protected statusFormService = inject(StatusFormService);
+  protected activatedRoute = inject(ActivatedRoute);
 
-  constructor(
-    protected statusService: StatusService,
-    protected statusFormService: StatusFormService,
-    protected activatedRoute: ActivatedRoute,
-  ) {}
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  editForm: StatusFormGroup = this.statusFormService.createStatusFormGroup();
 
   ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ status }) => {

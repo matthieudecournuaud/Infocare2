@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +28,7 @@ import tech.jhipster.web.util.ResponseUtil;
 @Transactional
 public class MaterialResource {
 
-    private final Logger log = LoggerFactory.getLogger(MaterialResource.class);
+    private static final Logger log = LoggerFactory.getLogger(MaterialResource.class);
 
     private static final String ENTITY_NAME = "material";
 
@@ -53,11 +54,10 @@ public class MaterialResource {
         if (material.getId() != null) {
             throw new BadRequestAlertException("A new material cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Material result = materialRepository.save(material);
-        return ResponseEntity
-            .created(new URI("/api/materials/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        material = materialRepository.save(material);
+        return ResponseEntity.created(new URI("/api/materials/" + material.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, material.getId().toString()))
+            .body(material);
     }
 
     /**
@@ -87,11 +87,10 @@ public class MaterialResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Material result = materialRepository.save(material);
-        return ResponseEntity
-            .ok()
+        material = materialRepository.save(material);
+        return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, material.getId().toString()))
-            .body(result);
+            .body(material);
     }
 
     /**
@@ -169,10 +168,17 @@ public class MaterialResource {
     /**
      * {@code GET  /materials} : get all the materials.
      *
+     * @param filter the filter of the request.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of materials in body.
      */
     @GetMapping("")
-    public List<Material> getAllMaterials() {
+    public List<Material> getAllMaterials(@RequestParam(name = "filter", required = false) String filter) {
+        if ("ticket-is-null".equals(filter)) {
+            log.debug("REST request to get all Materials where ticket is null");
+            return StreamSupport.stream(materialRepository.findAll().spliterator(), false)
+                .filter(material -> material.getTicket() == null)
+                .toList();
+        }
         log.debug("REST request to get all Materials");
         return materialRepository.findAll();
     }
@@ -200,8 +206,7 @@ public class MaterialResource {
     public ResponseEntity<Void> deleteMaterial(@PathVariable("id") Long id) {
         log.debug("REST request to delete Material : {}", id);
         materialRepository.deleteById(id);
-        return ResponseEntity
-            .noContent()
+        return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }

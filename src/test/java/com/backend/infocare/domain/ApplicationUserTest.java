@@ -5,8 +5,6 @@ import static com.backend.infocare.domain.TicketTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.backend.infocare.web.rest.TestUtil;
-import java.util.HashSet;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class ApplicationUserTest {
@@ -26,20 +24,16 @@ class ApplicationUserTest {
     }
 
     @Test
-    void ticketTest() throws Exception {
+    void ticketTest() {
         ApplicationUser applicationUser = getApplicationUserRandomSampleGenerator();
         Ticket ticketBack = getTicketRandomSampleGenerator();
 
-        applicationUser.addTicket(ticketBack);
-        assertThat(applicationUser.getTickets()).containsOnly(ticketBack);
+        applicationUser.setTicket(ticketBack);
+        assertThat(applicationUser.getTicket()).isEqualTo(ticketBack);
+        assertThat(ticketBack.getApplicationUser()).isEqualTo(applicationUser);
 
-        applicationUser.removeTicket(ticketBack);
-        assertThat(applicationUser.getTickets()).doesNotContain(ticketBack);
-
-        applicationUser.tickets(new HashSet<>(Set.of(ticketBack)));
-        assertThat(applicationUser.getTickets()).containsOnly(ticketBack);
-
-        applicationUser.setTickets(new HashSet<>());
-        assertThat(applicationUser.getTickets()).doesNotContain(ticketBack);
+        applicationUser.ticket(null);
+        assertThat(applicationUser.getTicket()).isNull();
+        assertThat(ticketBack.getApplicationUser()).isNull();
     }
 }

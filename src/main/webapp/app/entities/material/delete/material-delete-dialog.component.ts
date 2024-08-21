@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -15,10 +15,8 @@ import { MaterialService } from '../service/material.service';
 export class MaterialDeleteDialogComponent {
   material?: IMaterial;
 
-  constructor(
-    protected materialService: MaterialService,
-    protected activeModal: NgbActiveModal,
-  ) {}
+  protected materialService = inject(MaterialService);
+  protected activeModal = inject(NgbActiveModal);
 
   cancel(): void {
     this.activeModal.dismiss();

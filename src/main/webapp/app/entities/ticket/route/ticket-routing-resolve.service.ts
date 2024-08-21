@@ -7,7 +7,7 @@ import { mergeMap } from 'rxjs/operators';
 import { ITicket } from '../ticket.model';
 import { TicketService } from '../service/ticket.service';
 
-export const ticketResolve = (route: ActivatedRouteSnapshot): Observable<null | ITicket> => {
+const ticketResolve = (route: ActivatedRouteSnapshot): Observable<null | ITicket> => {
   const id = route.params['id'];
   if (id) {
     return inject(TicketService)

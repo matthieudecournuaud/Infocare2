@@ -3,7 +3,6 @@
     "changelogDate": "20240122133938"
   },
   "applications": "*",
-  "entityTableName": "category",
   "fields": [
     {
       "fieldName": "name",
@@ -25,6 +24,14 @@
     }
   ],
   "name": "Category",
-  "relationships": [],
+  "relationships": [
+    {
+      "otherEntityName": "ticket",
+      "otherEntityRelationshipName": "category",
+      "relationshipName": "ticket",
+      "relationshipSide": "right",
+      "relationshipType": "one-to-one"
+    }
+  ],
   "searchEngine": "no"
 }

@@ -3,7 +3,6 @@
     "changelogDate": "20240122134038"
   },
   "applications": "*",
-  "entityTableName": "status",
   "fields": [
     {
       "fieldName": "name",
@@ -41,6 +40,14 @@
     }
   ],
   "name": "Status",
-  "relationships": [],
+  "relationships": [
+    {
+      "otherEntityName": "ticket",
+      "otherEntityRelationshipName": "status",
+      "relationshipName": "ticket",
+      "relationshipSide": "right",
+      "relationshipType": "one-to-one"
+    }
+  ],
   "searchEngine": "no"
 }

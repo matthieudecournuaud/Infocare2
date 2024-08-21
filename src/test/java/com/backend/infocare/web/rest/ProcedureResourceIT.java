@@ -1,5 +1,7 @@
 package com.backend.infocare.web.rest;
 
+import static com.backend.infocare.domain.ProcedureAsserts.*;
+import static com.backend.infocare.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -8,12 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.backend.infocare.IntegrationTest;
 import com.backend.infocare.domain.Procedure;
 import com.backend.infocare.repository.ProcedureRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +77,9 @@ class ProcedureResourceIT {
     private static AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
     @Autowired
+    private ObjectMapper om;
+
+    @Autowired
     private ProcedureRepository procedureRepository;
 
     @Autowired
@@ -83,6 +89,8 @@ class ProcedureResourceIT {
     private MockMvc restProcedureMockMvc;
 
     private Procedure procedure;
+
+    private Procedure insertedProcedure;
 
     /**
      * Create an entity for this test.
@@ -135,31 +143,34 @@ class ProcedureResourceIT {
         procedure = createEntity(em);
     }
 
+    @AfterEach
+    public void cleanup() {
+        if (insertedProcedure != null) {
+            procedureRepository.delete(insertedProcedure);
+            insertedProcedure = null;
+        }
+    }
+
     @Test
     @Transactional
     void createProcedure() throws Exception {
-        int databaseSizeBeforeCreate = procedureRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Procedure
-        restProcedureMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(procedure)))
-            .andExpect(status().isCreated());
+        var returnedProcedure = om.readValue(
+            restProcedureMockMvc
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(procedure)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            Procedure.class
+        );
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeCreate + 1);
-        Procedure testProcedure = procedureList.get(procedureList.size() - 1);
-        assertThat(testProcedure.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testProcedure.getDescription()).isEqualTo(DEFAULT_DESCRIPTION);
-        assertThat(testProcedure.getCategory()).isEqualTo(DEFAULT_CATEGORY);
-        assertThat(testProcedure.getProcedureId()).isEqualTo(DEFAULT_PROCEDURE_ID);
-        assertThat(testProcedure.getStepByStepGuide()).isEqualTo(DEFAULT_STEP_BY_STEP_GUIDE);
-        assertThat(testProcedure.getEstimatedTime()).isEqualTo(DEFAULT_ESTIMATED_TIME);
-        assertThat(testProcedure.getRequiredTools()).isEqualTo(DEFAULT_REQUIRED_TOOLS);
-        assertThat(testProcedure.getSkillsRequired()).isEqualTo(DEFAULT_SKILLS_REQUIRED);
-        assertThat(testProcedure.getSafetyInstructions()).isEqualTo(DEFAULT_SAFETY_INSTRUCTIONS);
-        assertThat(testProcedure.getLastReviewed()).isEqualTo(DEFAULT_LAST_REVIEWED);
-        assertThat(testProcedure.getReviewedBy()).isEqualTo(DEFAULT_REVIEWED_BY);
-        assertThat(testProcedure.getAttachments()).isEqualTo(DEFAULT_ATTACHMENTS);
+        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        assertProcedureUpdatableFieldsEquals(returnedProcedure, getPersistedProcedure(returnedProcedure));
+
+        insertedProcedure = returnedProcedure;
     }
 
     @Test
@@ -168,23 +179,22 @@ class ProcedureResourceIT {
         // Create the Procedure with an existing ID
         procedure.setId(1L);
 
-        int databaseSizeBeforeCreate = procedureRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restProcedureMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(procedure)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(procedure)))
             .andExpect(status().isBadRequest());
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeCreate);
+        assertSameRepositoryCount(databaseSizeBeforeCreate);
     }
 
     @Test
     @Transactional
     void getAllProcedures() throws Exception {
         // Initialize the database
-        procedureRepository.saveAndFlush(procedure);
+        insertedProcedure = procedureRepository.saveAndFlush(procedure);
 
         // Get all the procedureList
         restProcedureMockMvc
@@ -210,7 +220,7 @@ class ProcedureResourceIT {
     @Transactional
     void getProcedure() throws Exception {
         // Initialize the database
-        procedureRepository.saveAndFlush(procedure);
+        insertedProcedure = procedureRepository.saveAndFlush(procedure);
 
         // Get the procedure
         restProcedureMockMvc
@@ -243,9 +253,9 @@ class ProcedureResourceIT {
     @Transactional
     void putExistingProcedure() throws Exception {
         // Initialize the database
-        procedureRepository.saveAndFlush(procedure);
+        insertedProcedure = procedureRepository.saveAndFlush(procedure);
 
-        int databaseSizeBeforeUpdate = procedureRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the procedure
         Procedure updatedProcedure = procedureRepository.findById(procedure.getId()).orElseThrow();
@@ -269,52 +279,36 @@ class ProcedureResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, updatedProcedure.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(updatedProcedure))
+                    .content(om.writeValueAsBytes(updatedProcedure))
             )
             .andExpect(status().isOk());
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeUpdate);
-        Procedure testProcedure = procedureList.get(procedureList.size() - 1);
-        assertThat(testProcedure.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testProcedure.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testProcedure.getCategory()).isEqualTo(UPDATED_CATEGORY);
-        assertThat(testProcedure.getProcedureId()).isEqualTo(UPDATED_PROCEDURE_ID);
-        assertThat(testProcedure.getStepByStepGuide()).isEqualTo(UPDATED_STEP_BY_STEP_GUIDE);
-        assertThat(testProcedure.getEstimatedTime()).isEqualTo(UPDATED_ESTIMATED_TIME);
-        assertThat(testProcedure.getRequiredTools()).isEqualTo(UPDATED_REQUIRED_TOOLS);
-        assertThat(testProcedure.getSkillsRequired()).isEqualTo(UPDATED_SKILLS_REQUIRED);
-        assertThat(testProcedure.getSafetyInstructions()).isEqualTo(UPDATED_SAFETY_INSTRUCTIONS);
-        assertThat(testProcedure.getLastReviewed()).isEqualTo(UPDATED_LAST_REVIEWED);
-        assertThat(testProcedure.getReviewedBy()).isEqualTo(UPDATED_REVIEWED_BY);
-        assertThat(testProcedure.getAttachments()).isEqualTo(UPDATED_ATTACHMENTS);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPersistedProcedureToMatchAllProperties(updatedProcedure);
     }
 
     @Test
     @Transactional
     void putNonExistingProcedure() throws Exception {
-        int databaseSizeBeforeUpdate = procedureRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         procedure.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restProcedureMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, procedure.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(procedure))
+                put(ENTITY_API_URL_ID, procedure.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(procedure))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithIdMismatchProcedure() throws Exception {
-        int databaseSizeBeforeUpdate = procedureRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         procedure.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -322,38 +316,36 @@ class ProcedureResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(procedure))
+                    .content(om.writeValueAsBytes(procedure))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithMissingIdPathParamProcedure() throws Exception {
-        int databaseSizeBeforeUpdate = procedureRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         procedure.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restProcedureMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(procedure)))
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(procedure)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void partialUpdateProcedureWithPatch() throws Exception {
         // Initialize the database
-        procedureRepository.saveAndFlush(procedure);
+        insertedProcedure = procedureRepository.saveAndFlush(procedure);
 
-        int databaseSizeBeforeUpdate = procedureRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the procedure using partial update
         Procedure partialUpdatedProcedure = new Procedure();
@@ -371,35 +363,26 @@ class ProcedureResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedProcedure.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedProcedure))
+                    .content(om.writeValueAsBytes(partialUpdatedProcedure))
             )
             .andExpect(status().isOk());
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeUpdate);
-        Procedure testProcedure = procedureList.get(procedureList.size() - 1);
-        assertThat(testProcedure.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testProcedure.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testProcedure.getCategory()).isEqualTo(UPDATED_CATEGORY);
-        assertThat(testProcedure.getProcedureId()).isEqualTo(DEFAULT_PROCEDURE_ID);
-        assertThat(testProcedure.getStepByStepGuide()).isEqualTo(UPDATED_STEP_BY_STEP_GUIDE);
-        assertThat(testProcedure.getEstimatedTime()).isEqualTo(UPDATED_ESTIMATED_TIME);
-        assertThat(testProcedure.getRequiredTools()).isEqualTo(DEFAULT_REQUIRED_TOOLS);
-        assertThat(testProcedure.getSkillsRequired()).isEqualTo(DEFAULT_SKILLS_REQUIRED);
-        assertThat(testProcedure.getSafetyInstructions()).isEqualTo(UPDATED_SAFETY_INSTRUCTIONS);
-        assertThat(testProcedure.getLastReviewed()).isEqualTo(DEFAULT_LAST_REVIEWED);
-        assertThat(testProcedure.getReviewedBy()).isEqualTo(UPDATED_REVIEWED_BY);
-        assertThat(testProcedure.getAttachments()).isEqualTo(DEFAULT_ATTACHMENTS);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertProcedureUpdatableFieldsEquals(
+            createUpdateProxyForBean(partialUpdatedProcedure, procedure),
+            getPersistedProcedure(procedure)
+        );
     }
 
     @Test
     @Transactional
     void fullUpdateProcedureWithPatch() throws Exception {
         // Initialize the database
-        procedureRepository.saveAndFlush(procedure);
+        insertedProcedure = procedureRepository.saveAndFlush(procedure);
 
-        int databaseSizeBeforeUpdate = procedureRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the procedure using partial update
         Procedure partialUpdatedProcedure = new Procedure();
@@ -423,32 +406,20 @@ class ProcedureResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedProcedure.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedProcedure))
+                    .content(om.writeValueAsBytes(partialUpdatedProcedure))
             )
             .andExpect(status().isOk());
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeUpdate);
-        Procedure testProcedure = procedureList.get(procedureList.size() - 1);
-        assertThat(testProcedure.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testProcedure.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testProcedure.getCategory()).isEqualTo(UPDATED_CATEGORY);
-        assertThat(testProcedure.getProcedureId()).isEqualTo(UPDATED_PROCEDURE_ID);
-        assertThat(testProcedure.getStepByStepGuide()).isEqualTo(UPDATED_STEP_BY_STEP_GUIDE);
-        assertThat(testProcedure.getEstimatedTime()).isEqualTo(UPDATED_ESTIMATED_TIME);
-        assertThat(testProcedure.getRequiredTools()).isEqualTo(UPDATED_REQUIRED_TOOLS);
-        assertThat(testProcedure.getSkillsRequired()).isEqualTo(UPDATED_SKILLS_REQUIRED);
-        assertThat(testProcedure.getSafetyInstructions()).isEqualTo(UPDATED_SAFETY_INSTRUCTIONS);
-        assertThat(testProcedure.getLastReviewed()).isEqualTo(UPDATED_LAST_REVIEWED);
-        assertThat(testProcedure.getReviewedBy()).isEqualTo(UPDATED_REVIEWED_BY);
-        assertThat(testProcedure.getAttachments()).isEqualTo(UPDATED_ATTACHMENTS);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertProcedureUpdatableFieldsEquals(partialUpdatedProcedure, getPersistedProcedure(partialUpdatedProcedure));
     }
 
     @Test
     @Transactional
     void patchNonExistingProcedure() throws Exception {
-        int databaseSizeBeforeUpdate = procedureRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         procedure.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
@@ -456,19 +427,18 @@ class ProcedureResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, procedure.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(procedure))
+                    .content(om.writeValueAsBytes(procedure))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithIdMismatchProcedure() throws Exception {
-        int databaseSizeBeforeUpdate = procedureRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         procedure.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -476,40 +446,36 @@ class ProcedureResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(procedure))
+                    .content(om.writeValueAsBytes(procedure))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithMissingIdPathParamProcedure() throws Exception {
-        int databaseSizeBeforeUpdate = procedureRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         procedure.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restProcedureMockMvc
-            .perform(
-                patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(procedure))
-            )
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(procedure)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Procedure in the database
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void deleteProcedure() throws Exception {
         // Initialize the database
-        procedureRepository.saveAndFlush(procedure);
+        insertedProcedure = procedureRepository.saveAndFlush(procedure);
 
-        int databaseSizeBeforeDelete = procedureRepository.findAll().size();
+        long databaseSizeBeforeDelete = getRepositoryCount();
 
         // Delete the procedure
         restProcedureMockMvc
@@ -517,7 +483,34 @@ class ProcedureResourceIT {
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
-        List<Procedure> procedureList = procedureRepository.findAll();
-        assertThat(procedureList).hasSize(databaseSizeBeforeDelete - 1);
+        assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
+    }
+
+    protected long getRepositoryCount() {
+        return procedureRepository.count();
+    }
+
+    protected void assertIncrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore + 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertDecrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore - 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertSameRepositoryCount(long countBefore) {
+        assertThat(countBefore).isEqualTo(getRepositoryCount());
+    }
+
+    protected Procedure getPersistedProcedure(Procedure procedure) {
+        return procedureRepository.findById(procedure.getId()).orElseThrow();
+    }
+
+    protected void assertPersistedProcedureToMatchAllProperties(Procedure expectedProcedure) {
+        assertProcedureAllPropertiesEquals(expectedProcedure, getPersistedProcedure(expectedProcedure));
+    }
+
+    protected void assertPersistedProcedureToMatchUpdatableProperties(Procedure expectedProcedure) {
+        assertProcedureAllUpdatablePropertiesEquals(expectedProcedure, getPersistedProcedure(expectedProcedure));
     }
 }

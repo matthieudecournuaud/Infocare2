@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -15,10 +15,8 @@ import { ApplicationUserService } from '../service/application-user.service';
 export class ApplicationUserDeleteDialogComponent {
   applicationUser?: IApplicationUser;
 
-  constructor(
-    protected applicationUserService: ApplicationUserService,
-    protected activeModal: NgbActiveModal,
-  ) {}
+  protected applicationUserService = inject(ApplicationUserService);
+  protected activeModal = inject(NgbActiveModal);
 
   cancel(): void {
     this.activeModal.dismiss();

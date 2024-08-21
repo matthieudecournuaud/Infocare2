@@ -1,8 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-import { map } from 'rxjs/operators';
+import { map, Observable } from 'rxjs';
 
 import dayjs from 'dayjs/esm';
 
@@ -29,12 +27,10 @@ export type EntityArrayResponseType = HttpResponse<IIntervention[]>;
 
 @Injectable({ providedIn: 'root' })
 export class InterventionService {
-  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/interventions');
+  protected http = inject(HttpClient);
+  protected applicationConfigService = inject(ApplicationConfigService);
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/interventions');
 
   create(intervention: NewIntervention): Observable<EntityResponseType> {
     const copy = this.convertDateFromClient(intervention);
@@ -88,8 +84,8 @@ export class InterventionService {
   ): Type[] {
     const interventions: Type[] = interventionsToCheck.filter(isPresent);
     if (interventions.length > 0) {
-      const interventionCollectionIdentifiers = interventionCollection.map(
-        interventionItem => this.getInterventionIdentifier(interventionItem)!,
+      const interventionCollectionIdentifiers = interventionCollection.map(interventionItem =>
+        this.getInterventionIdentifier(interventionItem),
       );
       const interventionsToAdd = interventions.filter(interventionItem => {
         const interventionIdentifier = this.getInterventionIdentifier(interventionItem);

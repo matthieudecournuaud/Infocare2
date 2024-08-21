@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -25,14 +25,13 @@ export class CommentUpdateComponent implements OnInit {
 
   ticketsSharedCollection: ITicket[] = [];
 
-  editForm: CommentFormGroup = this.commentFormService.createCommentFormGroup();
+  protected commentService = inject(CommentService);
+  protected commentFormService = inject(CommentFormService);
+  protected ticketService = inject(TicketService);
+  protected activatedRoute = inject(ActivatedRoute);
 
-  constructor(
-    protected commentService: CommentService,
-    protected commentFormService: CommentFormService,
-    protected ticketService: TicketService,
-    protected activatedRoute: ActivatedRoute,
-  ) {}
+  // eslint-disable-next-line @typescript-eslint/member-ordering
+  editForm: CommentFormGroup = this.commentFormService.createCommentFormGroup();
 
   compareTicket = (o1: ITicket | null, o2: ITicket | null): boolean => this.ticketService.compareTicket(o1, o2);
 

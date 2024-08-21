@@ -7,7 +7,7 @@ import { mergeMap } from 'rxjs/operators';
 import { IStatus } from '../status.model';
 import { StatusService } from '../service/status.service';
 
-export const statusResolve = (route: ActivatedRouteSnapshot): Observable<null | IStatus> => {
+const statusResolve = (route: ActivatedRouteSnapshot): Observable<null | IStatus> => {
   const id = route.params['id'];
   if (id) {
     return inject(StatusService)

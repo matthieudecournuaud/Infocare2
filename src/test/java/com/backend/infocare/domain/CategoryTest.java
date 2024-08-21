@@ -1,6 +1,7 @@
 package com.backend.infocare.domain;
 
 import static com.backend.infocare.domain.CategoryTestSamples.*;
+import static com.backend.infocare.domain.TicketTestSamples.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.backend.infocare.web.rest.TestUtil;
@@ -20,5 +21,19 @@ class CategoryTest {
 
         category2 = getCategorySample2();
         assertThat(category1).isNotEqualTo(category2);
+    }
+
+    @Test
+    void ticketTest() {
+        Category category = getCategoryRandomSampleGenerator();
+        Ticket ticketBack = getTicketRandomSampleGenerator();
+
+        category.setTicket(ticketBack);
+        assertThat(category.getTicket()).isEqualTo(ticketBack);
+        assertThat(ticketBack.getCategory()).isEqualTo(category);
+
+        category.ticket(null);
+        assertThat(category.getTicket()).isNull();
+        assertThat(ticketBack.getCategory()).isNull();
     }
 }

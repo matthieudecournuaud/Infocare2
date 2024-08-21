@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +28,7 @@ import tech.jhipster.web.util.ResponseUtil;
 @Transactional
 public class ApplicationUserResource {
 
-    private final Logger log = LoggerFactory.getLogger(ApplicationUserResource.class);
+    private static final Logger log = LoggerFactory.getLogger(ApplicationUserResource.class);
 
     private static final String ENTITY_NAME = "applicationUser";
 
@@ -54,11 +55,10 @@ public class ApplicationUserResource {
         if (applicationUser.getId() != null) {
             throw new BadRequestAlertException("A new applicationUser cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        ApplicationUser result = applicationUserRepository.save(applicationUser);
-        return ResponseEntity
-            .created(new URI("/api/application-users/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        applicationUser = applicationUserRepository.save(applicationUser);
+        return ResponseEntity.created(new URI("/api/application-users/" + applicationUser.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, applicationUser.getId().toString()))
+            .body(applicationUser);
     }
 
     /**
@@ -88,11 +88,10 @@ public class ApplicationUserResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        ApplicationUser result = applicationUserRepository.save(applicationUser);
-        return ResponseEntity
-            .ok()
+        applicationUser = applicationUserRepository.save(applicationUser);
+        return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, applicationUser.getId().toString()))
-            .body(result);
+            .body(applicationUser);
     }
 
     /**
@@ -152,19 +151,19 @@ public class ApplicationUserResource {
     /**
      * {@code GET  /application-users} : get all the applicationUsers.
      *
-     * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
+     * @param filter the filter of the request.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of applicationUsers in body.
      */
     @GetMapping("")
-    public List<ApplicationUser> getAllApplicationUsers(
-        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
-    ) {
-        log.debug("REST request to get all ApplicationUsers");
-        if (eagerload) {
-            return applicationUserRepository.findAllWithEagerRelationships();
-        } else {
-            return applicationUserRepository.findAll();
+    public List<ApplicationUser> getAllApplicationUsers(@RequestParam(name = "filter", required = false) String filter) {
+        if ("ticket-is-null".equals(filter)) {
+            log.debug("REST request to get all ApplicationUsers where ticket is null");
+            return StreamSupport.stream(applicationUserRepository.findAll().spliterator(), false)
+                .filter(applicationUser -> applicationUser.getTicket() == null)
+                .toList();
         }
+        log.debug("REST request to get all ApplicationUsers");
+        return applicationUserRepository.findAll();
     }
 
     /**
@@ -176,7 +175,7 @@ public class ApplicationUserResource {
     @GetMapping("/{id}")
     public ResponseEntity<ApplicationUser> getApplicationUser(@PathVariable("id") Long id) {
         log.debug("REST request to get ApplicationUser : {}", id);
-        Optional<ApplicationUser> applicationUser = applicationUserRepository.findOneWithEagerRelationships(id);
+        Optional<ApplicationUser> applicationUser = applicationUserRepository.findById(id);
         return ResponseUtil.wrapOrNotFound(applicationUser);
     }
 
@@ -190,8 +189,7 @@ public class ApplicationUserResource {
     public ResponseEntity<Void> deleteApplicationUser(@PathVariable("id") Long id) {
         log.debug("REST request to delete ApplicationUser : {}", id);
         applicationUserRepository.deleteById(id);
-        return ResponseEntity
-            .noContent()
+        return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }

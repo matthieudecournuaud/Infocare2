@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
@@ -15,10 +15,8 @@ import { CategoryService } from '../service/category.service';
 export class CategoryDeleteDialogComponent {
   category?: ICategory;
 
-  constructor(
-    protected categoryService: CategoryService,
-    protected activeModal: NgbActiveModal,
-  ) {}
+  protected categoryService = inject(CategoryService);
+  protected activeModal = inject(NgbActiveModal);
 
   cancel(): void {
     this.activeModal.dismiss();

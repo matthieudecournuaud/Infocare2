@@ -1,14 +1,17 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { RouterTestingHarness, RouterTestingModule } from '@angular/router/testing';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { of } from 'rxjs';
 
 import { ApplicationUserDetailComponent } from './application-user-detail.component';
 
 describe('ApplicationUser Management Detail Component', () => {
+  let comp: ApplicationUserDetailComponent;
+  let fixture: ComponentFixture<ApplicationUserDetailComponent>;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApplicationUserDetailComponent, RouterTestingModule.withRoutes([], { bindToComponentInputs: true })],
+      imports: [ApplicationUserDetailComponent],
       providers: [
         provideRouter(
           [
@@ -26,13 +29,26 @@ describe('ApplicationUser Management Detail Component', () => {
       .compileComponents();
   });
 
+  beforeEach(() => {
+    fixture = TestBed.createComponent(ApplicationUserDetailComponent);
+    comp = fixture.componentInstance;
+  });
+
   describe('OnInit', () => {
     it('Should load applicationUser on init', async () => {
       const harness = await RouterTestingHarness.create();
       const instance = await harness.navigateByUrl('/', ApplicationUserDetailComponent);
 
       // THEN
-      expect(instance.applicationUser).toEqual(expect.objectContaining({ id: 123 }));
+      expect(instance.applicationUser()).toEqual(expect.objectContaining({ id: 123 }));
+    });
+  });
+
+  describe('PreviousState', () => {
+    it('Should navigate to previous state', () => {
+      jest.spyOn(window.history, 'back');
+      comp.previousState();
+      expect(window.history.back).toHaveBeenCalled();
     });
   });
 });

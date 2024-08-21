@@ -25,7 +25,6 @@ describe('ApplicationUser Form Service', () => {
             avatar: expect.any(Object),
             notes: expect.any(Object),
             user: expect.any(Object),
-            tickets: expect.any(Object),
           }),
         );
       });
@@ -41,7 +40,6 @@ describe('ApplicationUser Form Service', () => {
             avatar: expect.any(Object),
             notes: expect.any(Object),
             user: expect.any(Object),
-            tickets: expect.any(Object),
           }),
         );
       });

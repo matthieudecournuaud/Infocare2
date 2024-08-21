@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center">
   <div class="col-8">
-    @if (procedure) {
+    @if (procedure()) {
       <div>
         <h2 data-cy="procedureDetailsHeading"><span jhiTranslate="infocare2App.procedure.detail.title">Procedure</span></h2>
 
@@ -13,55 +13,55 @@
         <dl class="row-md jh-entity-details">
           <dt><span jhiTranslate="global.field.id">ID</span></dt>
           <dd>
-            <span>{{ procedure.id }}</span>
+            <span>{{ procedure()!.id }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.name">Name</span></dt>
           <dd>
-            <span>{{ procedure.name }}</span>
+            <span>{{ procedure()!.name }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.description">Description</span></dt>
           <dd>
-            <span>{{ procedure.description }}</span>
+            <span>{{ procedure()!.description }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.category">Category</span></dt>
           <dd>
-            <span>{{ procedure.category }}</span>
+            <span>{{ procedure()!.category }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.procedureId">Procedure Id</span></dt>
           <dd>
-            <span>{{ procedure.procedureId }}</span>
+            <span>{{ procedure()!.procedureId }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.stepByStepGuide">Step By Step Guide</span></dt>
           <dd>
-            <span>{{ procedure.stepByStepGuide }}</span>
+            <span>{{ procedure()!.stepByStepGuide }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.estimatedTime">Estimated Time</span></dt>
           <dd>
-            <span>{{ procedure.estimatedTime }}</span>
+            <span>{{ procedure()!.estimatedTime }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.requiredTools">Required Tools</span></dt>
           <dd>
-            <span>{{ procedure.requiredTools }}</span>
+            <span>{{ procedure()!.requiredTools }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.skillsRequired">Skills Required</span></dt>
           <dd>
-            <span>{{ procedure.skillsRequired }}</span>
+            <span>{{ procedure()!.skillsRequired }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.safetyInstructions">Safety Instructions</span></dt>
           <dd>
-            <span>{{ procedure.safetyInstructions }}</span>
+            <span>{{ procedure()!.safetyInstructions }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.lastReviewed">Last Reviewed</span></dt>
           <dd>
-            <span>{{ procedure.lastReviewed | formatMediumDate }}</span>
+            <span>{{ procedure()!.lastReviewed | formatMediumDate }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.reviewedBy">Reviewed By</span></dt>
           <dd>
-            <span>{{ procedure.reviewedBy }}</span>
+            <span>{{ procedure()!.reviewedBy }}</span>
           </dd>
           <dt><span jhiTranslate="infocare2App.procedure.attachments">Attachments</span></dt>
           <dd>
-            <span>{{ procedure.attachments }}</span>
+            <span>{{ procedure()!.attachments }}</span>
           </dd>
         </dl>
 
@@ -69,7 +69,7 @@
           <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Retour</span>
         </button>
 
-        <button type="button" [routerLink]="['/procedure', procedure.id, 'edit']" class="btn btn-primary">
+        <button type="button" [routerLink]="['/procedure', procedure()!.id, 'edit']" class="btn btn-primary">
           <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Editer</span>
         </button>
       </div>

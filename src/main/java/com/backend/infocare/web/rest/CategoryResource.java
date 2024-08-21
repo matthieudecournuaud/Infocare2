@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +28,7 @@ import tech.jhipster.web.util.ResponseUtil;
 @Transactional
 public class CategoryResource {
 
-    private final Logger log = LoggerFactory.getLogger(CategoryResource.class);
+    private static final Logger log = LoggerFactory.getLogger(CategoryResource.class);
 
     private static final String ENTITY_NAME = "category";
 
@@ -53,11 +54,10 @@ public class CategoryResource {
         if (category.getId() != null) {
             throw new BadRequestAlertException("A new category cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Category result = categoryRepository.save(category);
-        return ResponseEntity
-            .created(new URI("/api/categories/" + result.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-            .body(result);
+        category = categoryRepository.save(category);
+        return ResponseEntity.created(new URI("/api/categories/" + category.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, category.getId().toString()))
+            .body(category);
     }
 
     /**
@@ -87,11 +87,10 @@ public class CategoryResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Category result = categoryRepository.save(category);
-        return ResponseEntity
-            .ok()
+        category = categoryRepository.save(category);
+        return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, category.getId().toString()))
-            .body(result);
+            .body(category);
     }
 
     /**
@@ -148,10 +147,17 @@ public class CategoryResource {
     /**
      * {@code GET  /categories} : get all the categories.
      *
+     * @param filter the filter of the request.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of categories in body.
      */
     @GetMapping("")
-    public List<Category> getAllCategories() {
+    public List<Category> getAllCategories(@RequestParam(name = "filter", required = false) String filter) {
+        if ("ticket-is-null".equals(filter)) {
+            log.debug("REST request to get all Categorys where ticket is null");
+            return StreamSupport.stream(categoryRepository.findAll().spliterator(), false)
+                .filter(category -> category.getTicket() == null)
+                .toList();
+        }
         log.debug("REST request to get all Categories");
         return categoryRepository.findAll();
     }
@@ -179,8 +185,7 @@ public class CategoryResource {
     public ResponseEntity<Void> deleteCategory(@PathVariable("id") Long id) {
         log.debug("REST request to delete Category : {}", id);
         categoryRepository.deleteById(id);
-        return ResponseEntity
-            .noContent()
+        return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }

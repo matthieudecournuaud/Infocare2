@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -14,12 +14,10 @@ export type EntityArrayResponseType = HttpResponse<IStatus[]>;
 
 @Injectable({ providedIn: 'root' })
 export class StatusService {
-  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/statuses');
+  protected http = inject(HttpClient);
+  protected applicationConfigService = inject(ApplicationConfigService);
 
-  constructor(
-    protected http: HttpClient,
-    protected applicationConfigService: ApplicationConfigService,
-  ) {}
+  protected resourceUrl = this.applicationConfigService.getEndpointFor('api/statuses');
 
   create(status: NewStatus): Observable<EntityResponseType> {
     return this.http.post<IStatus>(this.resourceUrl, status, { observe: 'response' });
@@ -60,7 +58,7 @@ export class StatusService {
   ): Type[] {
     const statuses: Type[] = statusesToCheck.filter(isPresent);
     if (statuses.length > 0) {
-      const statusCollectionIdentifiers = statusCollection.map(statusItem => this.getStatusIdentifier(statusItem)!);
+      const statusCollectionIdentifiers = statusCollection.map(statusItem => this.getStatusIdentifier(statusItem));
       const statusesToAdd = statuses.filter(statusItem => {
         const statusIdentifier = this.getStatusIdentifier(statusItem);
         if (statusCollectionIdentifiers.includes(statusIdentifier)) {

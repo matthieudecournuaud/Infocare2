@@ -3,7 +3,6 @@
     "changelogDate": "20240122134138"
   },
   "applications": "*",
-  "entityTableName": "priority",
   "fields": [
     {
       "fieldName": "name",
@@ -25,6 +24,14 @@
     }
   ],
   "name": "Priority",
-  "relationships": [],
+  "relationships": [
+    {
+      "otherEntityName": "ticket",
+      "otherEntityRelationshipName": "priority",
+      "relationshipName": "ticket",
+      "relationshipSide": "right",
+      "relationshipType": "one-to-one"
+    }
+  ],
   "searchEngine": "no"
 }

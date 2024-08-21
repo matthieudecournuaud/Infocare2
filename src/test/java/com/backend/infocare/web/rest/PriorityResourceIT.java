@@ -1,5 +1,7 @@
 package com.backend.infocare.web.rest;
 
+import static com.backend.infocare.domain.PriorityAsserts.*;
+import static com.backend.infocare.web.rest.TestUtil.createUpdateProxyForBean;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -8,10 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.backend.infocare.IntegrationTest;
 import com.backend.infocare.domain.Priority;
 import com.backend.infocare.repository.PriorityRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,9 @@ class PriorityResourceIT {
     private static AtomicLong longCount = new AtomicLong(random.nextInt() + (2 * Integer.MAX_VALUE));
 
     @Autowired
+    private ObjectMapper om;
+
+    @Autowired
     private PriorityRepository priorityRepository;
 
     @Autowired
@@ -54,6 +60,8 @@ class PriorityResourceIT {
     private MockMvc restPriorityMockMvc;
 
     private Priority priority;
+
+    private Priority insertedPriority;
 
     /**
      * Create an entity for this test.
@@ -82,22 +90,34 @@ class PriorityResourceIT {
         priority = createEntity(em);
     }
 
+    @AfterEach
+    public void cleanup() {
+        if (insertedPriority != null) {
+            priorityRepository.delete(insertedPriority);
+            insertedPriority = null;
+        }
+    }
+
     @Test
     @Transactional
     void createPriority() throws Exception {
-        int databaseSizeBeforeCreate = priorityRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
         // Create the Priority
-        restPriorityMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(priority)))
-            .andExpect(status().isCreated());
+        var returnedPriority = om.readValue(
+            restPriorityMockMvc
+                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(priority)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            Priority.class
+        );
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeCreate + 1);
-        Priority testPriority = priorityList.get(priorityList.size() - 1);
-        assertThat(testPriority.getName()).isEqualTo(DEFAULT_NAME);
-        assertThat(testPriority.getDescription()).isEqualTo(DEFAULT_DESCRIPTION);
-        assertThat(testPriority.getColorCode()).isEqualTo(DEFAULT_COLOR_CODE);
+        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
+        assertPriorityUpdatableFieldsEquals(returnedPriority, getPersistedPriority(returnedPriority));
+
+        insertedPriority = returnedPriority;
     }
 
     @Test
@@ -106,40 +126,38 @@ class PriorityResourceIT {
         // Create the Priority with an existing ID
         priority.setId(1L);
 
-        int databaseSizeBeforeCreate = priorityRepository.findAll().size();
+        long databaseSizeBeforeCreate = getRepositoryCount();
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restPriorityMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(priority)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(priority)))
             .andExpect(status().isBadRequest());
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeCreate);
+        assertSameRepositoryCount(databaseSizeBeforeCreate);
     }
 
     @Test
     @Transactional
     void checkNameIsRequired() throws Exception {
-        int databaseSizeBeforeTest = priorityRepository.findAll().size();
+        long databaseSizeBeforeTest = getRepositoryCount();
         // set the field null
         priority.setName(null);
 
         // Create the Priority, which fails.
 
         restPriorityMockMvc
-            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(priority)))
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(priority)))
             .andExpect(status().isBadRequest());
 
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeTest);
+        assertSameRepositoryCount(databaseSizeBeforeTest);
     }
 
     @Test
     @Transactional
     void getAllPriorities() throws Exception {
         // Initialize the database
-        priorityRepository.saveAndFlush(priority);
+        insertedPriority = priorityRepository.saveAndFlush(priority);
 
         // Get all the priorityList
         restPriorityMockMvc
@@ -156,7 +174,7 @@ class PriorityResourceIT {
     @Transactional
     void getPriority() throws Exception {
         // Initialize the database
-        priorityRepository.saveAndFlush(priority);
+        insertedPriority = priorityRepository.saveAndFlush(priority);
 
         // Get the priority
         restPriorityMockMvc
@@ -180,9 +198,9 @@ class PriorityResourceIT {
     @Transactional
     void putExistingPriority() throws Exception {
         // Initialize the database
-        priorityRepository.saveAndFlush(priority);
+        insertedPriority = priorityRepository.saveAndFlush(priority);
 
-        int databaseSizeBeforeUpdate = priorityRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the priority
         Priority updatedPriority = priorityRepository.findById(priority.getId()).orElseThrow();
@@ -194,43 +212,36 @@ class PriorityResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, updatedPriority.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(updatedPriority))
+                    .content(om.writeValueAsBytes(updatedPriority))
             )
             .andExpect(status().isOk());
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeUpdate);
-        Priority testPriority = priorityList.get(priorityList.size() - 1);
-        assertThat(testPriority.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testPriority.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testPriority.getColorCode()).isEqualTo(UPDATED_COLOR_CODE);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPersistedPriorityToMatchAllProperties(updatedPriority);
     }
 
     @Test
     @Transactional
     void putNonExistingPriority() throws Exception {
-        int databaseSizeBeforeUpdate = priorityRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         priority.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restPriorityMockMvc
             .perform(
-                put(ENTITY_API_URL_ID, priority.getId())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(priority))
+                put(ENTITY_API_URL_ID, priority.getId()).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(priority))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithIdMismatchPriority() throws Exception {
-        int databaseSizeBeforeUpdate = priorityRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         priority.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -238,38 +249,36 @@ class PriorityResourceIT {
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(TestUtil.convertObjectToJsonBytes(priority))
+                    .content(om.writeValueAsBytes(priority))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void putWithMissingIdPathParamPriority() throws Exception {
-        int databaseSizeBeforeUpdate = priorityRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         priority.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restPriorityMockMvc
-            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(priority)))
+            .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(priority)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void partialUpdatePriorityWithPatch() throws Exception {
         // Initialize the database
-        priorityRepository.saveAndFlush(priority);
+        insertedPriority = priorityRepository.saveAndFlush(priority);
 
-        int databaseSizeBeforeUpdate = priorityRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the priority using partial update
         Priority partialUpdatedPriority = new Priority();
@@ -281,26 +290,23 @@ class PriorityResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedPriority.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedPriority))
+                    .content(om.writeValueAsBytes(partialUpdatedPriority))
             )
             .andExpect(status().isOk());
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeUpdate);
-        Priority testPriority = priorityList.get(priorityList.size() - 1);
-        assertThat(testPriority.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testPriority.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testPriority.getColorCode()).isEqualTo(DEFAULT_COLOR_CODE);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPriorityUpdatableFieldsEquals(createUpdateProxyForBean(partialUpdatedPriority, priority), getPersistedPriority(priority));
     }
 
     @Test
     @Transactional
     void fullUpdatePriorityWithPatch() throws Exception {
         // Initialize the database
-        priorityRepository.saveAndFlush(priority);
+        insertedPriority = priorityRepository.saveAndFlush(priority);
 
-        int databaseSizeBeforeUpdate = priorityRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
 
         // Update the priority using partial update
         Priority partialUpdatedPriority = new Priority();
@@ -312,23 +318,20 @@ class PriorityResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedPriority.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(partialUpdatedPriority))
+                    .content(om.writeValueAsBytes(partialUpdatedPriority))
             )
             .andExpect(status().isOk());
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeUpdate);
-        Priority testPriority = priorityList.get(priorityList.size() - 1);
-        assertThat(testPriority.getName()).isEqualTo(UPDATED_NAME);
-        assertThat(testPriority.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
-        assertThat(testPriority.getColorCode()).isEqualTo(UPDATED_COLOR_CODE);
+
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
+        assertPriorityUpdatableFieldsEquals(partialUpdatedPriority, getPersistedPriority(partialUpdatedPriority));
     }
 
     @Test
     @Transactional
     void patchNonExistingPriority() throws Exception {
-        int databaseSizeBeforeUpdate = priorityRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         priority.setId(longCount.incrementAndGet());
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
@@ -336,19 +339,18 @@ class PriorityResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, priority.getId())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(priority))
+                    .content(om.writeValueAsBytes(priority))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithIdMismatchPriority() throws Exception {
-        int databaseSizeBeforeUpdate = priorityRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         priority.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
@@ -356,38 +358,36 @@ class PriorityResourceIT {
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType("application/merge-patch+json")
-                    .content(TestUtil.convertObjectToJsonBytes(priority))
+                    .content(om.writeValueAsBytes(priority))
             )
             .andExpect(status().isBadRequest());
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void patchWithMissingIdPathParamPriority() throws Exception {
-        int databaseSizeBeforeUpdate = priorityRepository.findAll().size();
+        long databaseSizeBeforeUpdate = getRepositoryCount();
         priority.setId(longCount.incrementAndGet());
 
         // If url ID doesn't match entity ID, it will throw BadRequestAlertException
         restPriorityMockMvc
-            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(TestUtil.convertObjectToJsonBytes(priority)))
+            .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(priority)))
             .andExpect(status().isMethodNotAllowed());
 
         // Validate the Priority in the database
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeUpdate);
+        assertSameRepositoryCount(databaseSizeBeforeUpdate);
     }
 
     @Test
     @Transactional
     void deletePriority() throws Exception {
         // Initialize the database
-        priorityRepository.saveAndFlush(priority);
+        insertedPriority = priorityRepository.saveAndFlush(priority);
 
-        int databaseSizeBeforeDelete = priorityRepository.findAll().size();
+        long databaseSizeBeforeDelete = getRepositoryCount();
 
         // Delete the priority
         restPriorityMockMvc
@@ -395,7 +395,34 @@ class PriorityResourceIT {
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
-        List<Priority> priorityList = priorityRepository.findAll();
-        assertThat(priorityList).hasSize(databaseSizeBeforeDelete - 1);
+        assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
+    }
+
+    protected long getRepositoryCount() {
+        return priorityRepository.count();
+    }
+
+    protected void assertIncrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore + 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertDecrementedRepositoryCount(long countBefore) {
+        assertThat(countBefore - 1).isEqualTo(getRepositoryCount());
+    }
+
+    protected void assertSameRepositoryCount(long countBefore) {
+        assertThat(countBefore).isEqualTo(getRepositoryCount());
+    }
+
+    protected Priority getPersistedPriority(Priority priority) {
+        return priorityRepository.findById(priority.getId()).orElseThrow();
+    }
+
+    protected void assertPersistedPriorityToMatchAllProperties(Priority expectedPriority) {
+        assertPriorityAllPropertiesEquals(expectedPriority, getPersistedPriority(expectedPriority));
+    }
+
+    protected void assertPersistedPriorityToMatchUpdatableProperties(Priority expectedPriority) {
+        assertPriorityAllUpdatablePropertiesEquals(expectedPriority, getPersistedPriority(expectedPriority));
     }
 }
